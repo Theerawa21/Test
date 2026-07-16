@@ -26,6 +26,10 @@ header{background:var(--ink);color:#fff;padding:28px 20px 88px;position:relative
 h1{font-size:clamp(22px,4.5vw,32px);font-weight:800;line-height:1.25}
 .sub{margin-top:6px;color:#B9C6DC;font-size:14px}
 .sub b{color:#fff}
+.gobar{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
+.gobtn{display:inline-flex;align-items:center;gap:8px;background:var(--gold);color:var(--ink);font-weight:800;font-size:15px;text-decoration:none;padding:11px 20px;border-radius:10px;transition:transform .12s, box-shadow .12s;box-shadow:0 4px 14px rgba(185,138,31,.35)}
+.gobtn:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(185,138,31,.45)}
+.gobtn svg{flex-shrink:0}
 .search-wrap{max-width:860px;margin:-56px auto 0;padding:0 20px}
 .search-card{background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:0 10px 30px rgba(15,37,71,.12);padding:18px}
 .search-box{position:relative}
@@ -77,6 +81,12 @@ footer a{color:var(--ink-soft)}
     <div class="eyebrow">Oxford Online Placement Test · 2026-07</div>
     <h1>ค้นหารหัสสอบออนไลน์ของคุณ</h1>
     <div class="sub">นักเรียนชั้น ม.6/3 – 6/5 โรงเรียนเซนต์เทเรซาหนองจอก · เข้าสอบที่ <b>oxfordenglishtesting.com</b> · Org ID <b>103713</b></div>
+    <div class="gobar">
+      <a class="gobtn" href="https://www.oxfordenglishtesting.com" target="_blank" rel="noopener">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6"/><path d="M20 4 10.5 13.5"/><path d="M19 13v5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h5"/></svg>
+        เข้าเว็บสอบ oxfordenglishtesting.com
+      </a>
+    </div>
   </div>
 </header>
 
@@ -145,7 +155,7 @@ function render(){
         <div class="field"><div class="lbl">รหัสอ้างอิง</div><div class="val">${esc(d.ref)}</div></div>
         <div class="field"><div class="lbl">Group</div><div class="val">${esc(d.group)}</div></div>
       </div>
-      <div class="hint">พิมพ์รหัสผ่านตามตัวอักษรเป๊ะ ๆ (เล็ก-ใหญ่มีผล) · ตัวที่ขีดเส้นใต้คือ<u>ตัวเลข</u></div>
+      <div class="hint">พิมพ์รหัสผ่านตามตัวอักษรเป๊ะ ๆ (เล็ก-ใหญ่มีผล) · ตัวที่ขีดเส้นใต้คือ<u>ตัวเลข</u> · <a href="https://www.oxfordenglishtesting.com" target="_blank" rel="noopener" style="color:var(--ink);font-weight:700">ไปหน้าเข้าสอบ →</a></div>
     </div>`).join('') + (hits.length>30 ? '<div class="empty"><p>แสดง 30 รายการแรก — พิมพ์ให้เจาะจงขึ้นเพื่อกรองผล</p></div>' : '');
 }
 
