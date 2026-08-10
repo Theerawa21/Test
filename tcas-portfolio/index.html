@@ -12,18 +12,100 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=20260810-1937">
+  <link rel="stylesheet" href="styles.css?v=20260810-1946">
+  <link rel="stylesheet" href="teacher.css?v=20260810-1946">
 </head>
 <body>
-<header class="topbar"><div class="topbar-inner"><div class="brand"><div class="brand-mark">ST</div><div><h1 id="brandTitle">ระบบบันทึกข้อมูลผลงานนักเรียน</h1><p id="brandSchool">โรงเรียนเซนต์เทเรซา</p></div></div><button id="logoutBtn" class="ghost-top hidden" type="button">ออกจากระบบ</button></div></header>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <div class="brand-mark">ST</div>
+      <div><h1 id="brandTitle">ระบบบันทึกข้อมูลผลงานนักเรียน</h1><p id="brandSchool">โรงเรียนเซนต์เทเรซา</p></div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <button id="teacherEntryBtn" class="teacher-entry" type="button">👩‍🏫 สำหรับครู</button>
+      <button id="logoutBtn" class="ghost-top hidden" type="button">ออกจากระบบ</button>
+    </div>
+  </div>
+</header>
+
 <main class="shell">
-<section id="setupView" class="view center-view hidden"><div class="auth-card"><div class="hero-icon">⚙️</div><h2>ตั้งค่าการเชื่อมต่อครั้งแรก</h2><p class="lead">เว็บ GitHub Pages พร้อมแล้ว แต่ต้องเชื่อมกับ Google Apps Script Web App ก่อน จึงจะค้นหานักเรียนและบันทึกลง Google Sheet ได้</p><div class="field"><label>Apps Script Web App URL</label><input id="backendInput" type="url" placeholder="https://script.google.com/macros/s/.../exec"></div><div id="setupError" class="error hidden"></div><button id="saveBackendBtn" class="btn btn-primary btn-block" type="button">บันทึกการเชื่อมต่อ</button><div class="config-box hint">สำหรับผู้ดูแลระบบเท่านั้น หลังตั้งค่าแล้ว URL จะถูกเก็บในเบราว์เซอร์เครื่องนี้ หรือเปิดลิงก์แบบ <code>?backend=URL_WEB_APP</code> เพื่อกำหนดค่าอัตโนมัติ</div></div></section>
+<section id="setupView" class="view center-view hidden"><div class="auth-card"><div class="hero-icon">⚙️</div><h2>ตั้งค่าการเชื่อมต่อครั้งแรก</h2><p class="lead">เว็บ GitHub Pages พร้อมแล้ว แต่ต้องเชื่อมกับ Google Apps Script Web App ก่อน จึงจะค้นหานักเรียนและบันทึกลง Google Sheet ได้</p><div class="field"><label>Apps Script Web App URL</label><input id="backendInput" type="url" placeholder="https://script.google.com/macros/s/.../exec"></div><div id="setupError" class="error hidden"></div><button id="saveBackendBtn" class="btn btn-primary btn-block" type="button">บันทึกการเชื่อมต่อ</button><div class="config-box hint">สำหรับผู้ดูแลระบบเท่านั้น หลังตั้งค่าแล้ว URL จะถูกเก็บในเบราว์เซอร์เครื่องนี้</div></div></section>
+
 <section id="loginView" class="view center-view hidden"><div class="auth-card"><div class="hero-icon">🎓</div><h2>เข้าสู่ระบบนักเรียน</h2><p class="lead">กรอกรหัสประจำตัวนักเรียน ระบบจะตรวจสอบกับฐานข้อมูลของโรงเรียนและแสดงข้อมูลให้ยืนยันก่อนบันทึกผลงาน</p><form id="loginForm"><div class="field"><label>รหัสประจำตัวนักเรียน <span class="required">*</span></label><input id="studentCode" class="student-code" inputmode="numeric" autocomplete="off" maxlength="10" required placeholder="เช่น 13999"><div class="hint">กรอกเฉพาะตัวเลขรหัสประจำตัวนักเรียน</div></div><div id="loginError" class="error hidden"></div><button class="btn btn-primary btn-block" type="submit">ตรวจสอบข้อมูล</button></form></div></section>
+
 <section id="confirmView" class="view center-view hidden"><div class="identity-card"><div class="identity-head"><div class="avatar">👤</div><div><div id="confirmName" class="identity-name">-</div><div class="identity-sub">กรุณาตรวจสอบว่าข้อมูลนี้เป็นของคุณ</div></div></div><div class="identity-grid"><div class="info-box"><div class="info-label">รหัสประจำตัวนักเรียน</div><div id="confirmStudentId" class="info-value">-</div></div><div class="info-box"><div class="info-label">ชั้น / ห้อง</div><div id="confirmClass" class="info-value">-</div></div><div class="info-box full"><div class="info-label">เลขประจำตัวประชาชน</div><div id="confirmCitizen" class="info-value">-</div></div></div><div class="notice">ข้อมูลส่วนบุคคลนี้ใช้เพื่อยืนยันตัวตนและเชื่อมข้อมูลทั้ง 4 ประเภทเข้ากับระเบียนของนักเรียนคนเดียวกัน กรุณาไม่ส่งต่อหรือถ่ายภาพหน้าจอที่มีเลขประจำตัวประชาชนของผู้อื่น</div><div class="action-row"><button id="wrongBtn" class="btn btn-secondary" type="button">ไม่ใช่ข้อมูลของฉัน</button><button id="confirmBtn" class="btn btn-primary" type="button">ข้อมูลถูกต้อง · ดำเนินการต่อ</button></div></div></section>
+
 <section id="dashboardView" class="view hidden"><div class="dashboard-head"><div><h2>บันทึกข้อมูลผลงาน</h2><p>เลือกประเภทข้อมูลที่ตรงกับผลงานของคุณ ระบบจะจัดเก็บตามโครงสร้างไฟล์ TCASVerified แต่ละประเภทโดยอัตโนมัติ</p></div><div class="student-pill"><strong id="dashName">-</strong><span id="dashMeta">-</span></div></div><h3 class="section-title">เลือกประเภทข้อมูล</h3><div class="type-grid"><button class="type-card" data-type="activity"><div class="type-icon">🏃</div><h3>กิจกรรม</h3><p>ใช้บันทึกการเข้าร่วมกิจกรรมที่ไม่ได้เน้นรางวัล เช่น ค่าย จิตอาสา กีฬา ชุมนุม สภานักเรียน กิจกรรมพัฒนาทักษะ หรือการเข้าร่วมการแข่งขันโดยไม่ได้รับรางวัล</p><span id="countActivity" class="count">0 รายการ</span></button><button class="type-card" data-type="prize"><div class="type-icon">🏆</div><h3>รางวัล</h3><p>ใช้เมื่อได้รับรางวัลจากการแข่งขันหรือการประกวด เช่น ชนะเลิศ รองชนะเลิศ เหรียญทอง–เงิน–ทองแดง รางวัลชมเชย หรือรางวัลพิเศษ</p><span id="countPrize" class="count">0 รายการ</span></button><button class="type-card" data-type="project"><div class="type-icon">💡</div><h3>โครงงาน</h3><p>ใช้บันทึกผลงานที่นักเรียนศึกษาค้นคว้า ออกแบบ วิจัย หรือพัฒนาขึ้น เช่น โครงงานวิทยาศาสตร์ แอปพลิเคชัน สิ่งประดิษฐ์ นวัตกรรม หรือผลงานวิจัย</p><span id="countProject" class="count">0 รายการ</span></button><button class="type-card" data-type="course"><div class="type-icon">📜</div><h3>หลักสูตร / Certificate</h3><p>ใช้บันทึกการเรียนรู้หรือการอบรมที่มีหลักสูตรชัดเจน เช่น Workshop, MOOC, คอร์สออนไลน์ การอบรมเชิงปฏิบัติการ และหลักสูตรที่มีใบประกาศหรือผลการเรียนรู้</p><span id="countCourse" class="count">0 รายการ</span></button></div><h3 class="section-title">ข้อมูลที่ฉันบันทึก</h3><div class="panel"><div class="toolbar"><h3>รายการทั้งหมด</h3><button id="refreshBtn" class="btn btn-secondary" type="button">↻ อัปเดต</button></div><div id="recordsList" class="records"></div></div><div class="footer-note">ข้อมูลจะถูกบันทึกลง Google Sheet ของโรงเรียน และจัดเก็บแยกเป็น activities / prizes / projects / certs-courses</div></section>
+
 <section id="formView" class="view hidden"><div class="form-shell"><div class="form-top"><button id="backBtn" class="back" type="button">←</button><div class="form-title"><h2 id="formHeading">บันทึกข้อมูล</h2><p id="formSubheading">-</p></div></div><div class="student-strip"><strong id="formStudentName">-</strong><span id="formStudentMeta">-</span></div><form id="entryForm" class="form-card"><div id="dynamicFields"></div><div class="form-actions"><button id="cancelBtn" class="btn btn-secondary" type="button">ยกเลิก</button><button class="btn btn-primary" type="submit">💾 บันทึกข้อมูล</button></div></form></div></section>
+
+<!-- TEACHER LOGIN -->
+<section id="teacherLoginView" class="view center-view hidden">
+  <div class="auth-card teacher-login-card">
+    <div class="hero-icon">👩‍🏫</div>
+    <h2>ระบบตรวจสอบสำหรับครู</h2>
+    <p class="lead">สำหรับครูตรวจสอบการส่งข้อมูลของนักเรียนแยกเป็นรายห้อง และดูรายละเอียดผลงานรายบุคคล</p>
+    <form id="teacherLoginForm">
+      <div class="field"><label>รหัสสำหรับครู <span class="required">*</span></label><input id="teacherCode" class="student-code" type="password" inputmode="numeric" autocomplete="off" maxlength="6" required placeholder="••••••"><div class="hint">กรอกรหัสสำหรับครู 6 หลัก</div></div>
+      <div id="teacherLoginError" class="error hidden"></div>
+      <button class="btn btn-primary btn-block" type="submit">เข้าสู่หน้าตรวจสอบ</button>
+      <button id="teacherBackStudentBtn" class="btn btn-secondary btn-block" type="button">← กลับหน้าสำหรับนักเรียน</button>
+    </form>
+  </div>
+</section>
+
+<!-- TEACHER DASHBOARD -->
+<section id="teacherDashboardView" class="view hidden">
+  <div class="teacher-dashboard">
+    <div class="teacher-head">
+      <div><h2>Dashboard ตรวจสอบการส่งข้อมูล</h2><p>เลือกห้องเพื่อดูว่านักเรียนส่งแล้วกี่คน ยังไม่ส่งกี่คน และตรวจสอบรายละเอียดรายบุคคล</p></div>
+      <div class="teacher-actions"><button id="teacherRefreshBtn" class="btn btn-secondary" type="button">↻ อัปเดตข้อมูล</button><button id="teacherLogoutBtn" class="btn btn-secondary" type="button">ออกจากโหมดครู</button></div>
+    </div>
+
+    <div class="teacher-stats">
+      <div class="teacher-stat"><div id="teacherTotal" class="value">0</div><div class="label">นักเรียนทั้งหมด · <span id="teacherScopeLabel">ทุกห้อง</span></div></div>
+      <div class="teacher-stat"><div id="teacherSent" class="value">0</div><div class="label">ส่งข้อมูลแล้ว</div></div>
+      <div class="teacher-stat"><div id="teacherNotSent" class="value">0</div><div class="label">ยังไม่ส่งข้อมูล</div></div>
+      <div class="teacher-stat"><div id="teacherRecords" class="value">0</div><div class="label">รายการผลงานทั้งหมด</div></div>
+    </div>
+
+    <div class="panel">
+      <div class="toolbar"><h3>เลือกห้องเรียน</h3><span class="hint">กดที่ห้องเพื่อกรองรายชื่อ</span></div>
+      <div id="teacherRoomGrid" class="room-grid"></div>
+    </div>
+
+    <h3 class="section-title">รายชื่อนักเรียน <span id="teacherResultCount" class="count">0 คน</span></h3>
+    <div class="teacher-filterbar">
+      <input id="teacherSearch" type="search" placeholder="ค้นหารหัสนักเรียน ชื่อ หรือนามสกุล">
+      <select id="teacherStatus"><option value="all">ทุกสถานะ</option><option value="sent">ส่งแล้ว</option><option value="none">ยังไม่ส่ง</option></select>
+      <select id="teacherType"><option value="all">ทุกประเภท</option><option value="activity">มีกิจกรรม</option><option value="prize">มีรางวัล</option><option value="project">มีโครงงาน</option><option value="course">มีหลักสูตร / Certificate</option></select>
+    </div>
+
+    <div class="teacher-table-wrap">
+      <table class="teacher-table">
+        <thead><tr><th>นักเรียน</th><th>สถานะ</th><th>จำนวน</th><th>แยกตามประเภท</th><th>รายละเอียด</th></tr></thead>
+        <tbody id="teacherStudentRows"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- TEACHER STUDENT DETAIL -->
+<section id="teacherDetailView" class="view hidden">
+  <div class="teacher-detail-shell">
+    <div class="teacher-detail-head"><button id="teacherDetailBackBtn" class="back" type="button">←</button><div><h2>รายละเอียดข้อมูลนักเรียน</h2><div class="hint">ตรวจสอบข้อมูลที่นักเรียนบันทึกไว้ทั้ง 4 ประเภท</div></div></div>
+    <div class="teacher-detail-student"><strong id="teacherDetailName">-</strong><div id="teacherDetailMeta">-</div></div>
+    <div id="teacherRecordList" class="teacher-record-list"></div>
+  </div>
+</section>
 </main>
-<div id="loader" class="loader"><div class="spinner"></div></div><div id="toast" class="toast"></div><iframe id="postFrame" name="postFrame" class="hidden" title="data-submit"></iframe><form id="postForm" class="hidden" method="post" target="postFrame"><input name="action"><input name="payload"><input name="origin"></form>
+
+<div id="loader" class="loader"><div class="spinner"></div></div>
+<div id="toast" class="toast"></div>
+<iframe id="postFrame" name="postFrame" class="hidden" title="data-submit"></iframe>
+<form id="postForm" class="hidden" method="post" target="postFrame"><input name="action"><input name="payload"><input name="origin"></form>
+
 <script>
 window.TCAS_CONFIG = {
   apiUrl: 'https://script.google.com/macros/s/AKfycbyKMSYj0yDC8RgKpv_qNdvJHqDDDIbk5fp_A7vXEIEVAta8o9fM_YELgHQOOWvrQoc7/exec',
@@ -32,6 +114,7 @@ window.TCAS_CONFIG = {
   academicYear: '2569'
 };
 </script>
-<script src="app.js?v=20260810-1937"></script>
+<script src="app.js?v=20260810-1946"></script>
+<script src="teacher.js?v=20260810-1946"></script>
 </body>
 </html>
