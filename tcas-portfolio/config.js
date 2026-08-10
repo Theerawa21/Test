@@ -1,5 +1,5 @@
 window.TCAS_CONFIG = {
-  apiUrl: 'https://script.google.com/macros/s/AKfycbzWA_D0MvJp6AjYHvnvOutxcNBt9IixLpyWOKxU6PzPhA93gpJvdqbWwr68Tpblvp6_/exec',
+  apiUrl: 'https://script.google.com/macros/s/AKfycbyvEgrNa4g3puQ5AasQdpqCN295_Gcr1f1j3gcVrEkx_VH_q0r1pr7LTqYdQiHfYqR2/exec',
   appName: 'ระบบบันทึกข้อมูลผลงานนักเรียน',
   schoolName: 'โรงเรียนเซนต์เทเรซา',
   academicYear: '2569'
