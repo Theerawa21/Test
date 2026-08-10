@@ -1,12 +1,13 @@
 /**
  * Backend for GitHub Pages TCAS portfolio entry system.
  * Deploy as Web App: Execute as Me, access according to your school's policy.
+ * Teacher code is stored in Apps Script > Project Settings > Script Properties
+ * Property name: TEACHER_CODE
  */
 const DATA_SPREADSHEET_ID = '1seV4fk00kr62MiWd9i6IxjHqVZaTLQinZmb7MDXDzc4';
 const STUDENT_SPREADSHEET_ID = '1gXl-v84hWWemlZ2ATEQhSPQSkxUhKmT7AlPpR0-QCIY';
 const STUDENT_SHEET_NAME = 'Student List';
 const ALLOWED_ORIGIN = 'https://theerawa21.github.io';
-const DEFAULT_TEACHER_CODE = '123456';
 const TEACHER_SESSION_SECONDS = 21600; // 6 ชั่วโมง
 
 const CONFIG = {
@@ -202,7 +203,9 @@ function teacherLogout_(session){
 }
 
 function getTeacherCode_(){
-  return PropertiesService.getScriptProperties().getProperty('TEACHER_CODE') || DEFAULT_TEACHER_CODE;
+  const code=PropertiesService.getScriptProperties().getProperty('TEACHER_CODE');
+  if(!code) throw new Error('ยังไม่ได้ตั้งค่า TEACHER_CODE ใน Script Properties');
+  return String(code).trim();
 }
 
 function requireTeacherSession_(session){
@@ -308,13 +311,6 @@ function teacherRecord_(record){
     out[key]=record[key];
   });
   return out;
-}
-
-// ถ้าต้องการเปลี่ยนรหัสภายหลัง ให้ไปที่ Project Settings > Script Properties
-// ตั้งชื่อ property ว่า TEACHER_CODE เช่น 654321
-function setDefaultTeacherCode(){
-  PropertiesService.getScriptProperties().setProperty('TEACHER_CODE','123456');
-  return 'ตั้งรหัสครูเป็น 123456 แล้ว';
 }
 
 /* ========================= END TEACHER MODE ========================= */
