@@ -4,12 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#12365a">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <meta name="description" content="ระบบบันทึกกิจกรรม รางวัล โครงงาน และหลักสูตรของนักเรียน">
   <title>ระบบบันทึกข้อมูลผลงานนักเรียน</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=20260810-1934">
 </head>
 <body>
 <header class="topbar"><div class="topbar-inner"><div class="brand"><div class="brand-mark">ST</div><div><h1 id="brandTitle">ระบบบันทึกข้อมูลผลงานนักเรียน</h1><p id="brandSchool">โรงเรียนเซนต์เทเรซา</p></div></div><button id="logoutBtn" class="ghost-top hidden" type="button">ออกจากระบบ</button></div></header>
@@ -21,6 +24,14 @@
 <section id="formView" class="view hidden"><div class="form-shell"><div class="form-top"><button id="backBtn" class="back" type="button">←</button><div class="form-title"><h2 id="formHeading">บันทึกข้อมูล</h2><p id="formSubheading">-</p></div></div><div class="student-strip"><strong id="formStudentName">-</strong><span id="formStudentMeta">-</span></div><form id="entryForm" class="form-card"><div id="dynamicFields"></div><div class="form-actions"><button id="cancelBtn" class="btn btn-secondary" type="button">ยกเลิก</button><button class="btn btn-primary" type="submit">💾 บันทึกข้อมูล</button></div></form></div></section>
 </main>
 <div id="loader" class="loader"><div class="spinner"></div></div><div id="toast" class="toast"></div><iframe id="postFrame" name="postFrame" class="hidden" title="data-submit"></iframe><form id="postForm" class="hidden" method="post" target="postFrame"><input name="action"><input name="payload"><input name="origin"></form>
-<script src="config.js"></script><script src="app.js"></script>
+<script>
+window.TCAS_CONFIG = {
+  apiUrl: 'https://script.google.com/macros/s/AKfycbyKMSYj0yDC8RgKpv_qNdvJHqDDDIbk5fp_A7vXEIEVAta8o9fM_YELgHQOOWvrQoc7/exec',
+  appName: 'ระบบบันทึกข้อมูลผลงานนักเรียน',
+  schoolName: 'โรงเรียนเซนต์เทเรซา',
+  academicYear: '2569'
+};
+</script>
+<script src="app.js?v=20260810-1934"></script>
 </body>
 </html>
