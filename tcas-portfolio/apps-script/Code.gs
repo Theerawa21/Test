@@ -6,6 +6,8 @@ const DATA_SPREADSHEET_ID = '1seV4fk00kr62MiWd9i6IxjHqVZaTLQinZmb7MDXDzc4';
 const STUDENT_SPREADSHEET_ID = '1gXl-v84hWWemlZ2ATEQhSPQSkxUhKmT7AlPpR0-QCIY';
 const STUDENT_SHEET_NAME = 'Student List';
 const ALLOWED_ORIGIN = 'https://theerawa21.github.io';
+const DEFAULT_TEACHER_CODE = '123456';
+const TEACHER_SESSION_SECONDS = 21600; // 6 ชั่วโมง
 
 const CONFIG = {
   activity:{sheet:'activities',headers:['citizen_id','title','first_name','last_name','program_title','exp_name','description','date','end_date','year','level','hours','fee']},
@@ -25,7 +27,9 @@ function doGet(e){
     else if(action==='records') result=recordsResponse_(p.student_id);
     else result={ok:true,message:'TCAS API พร้อมใช้งาน'};
     return jsonp_(result,p.callback);
-  }catch(err){return jsonp_({ok:false,message:safeError_(err)},e&&e.parameter&&e.parameter.callback);}
+  }catch(err){
+    return jsonp_({ok:false,message:safeError_(err)},e&&e.parameter&&e.parameter.callback);
+  }
 }
 
 function doPost(e){
@@ -37,12 +41,20 @@ function doPost(e){
     const payload=JSON.parse(p.payload||'{}');
     token=String(payload._token||'');
     let result;
+
     if(action==='save') result=saveRecord_(payload);
     else if(action==='update') result=updateRecord_(payload);
     else if(action==='delete') result=deleteRecord_(payload);
+    else if(action==='teacherLogin') result=teacherLogin_(payload.teacher_code);
+    else if(action==='teacherDashboard') result=teacherDashboardResponse_(payload.teacher_token);
+    else if(action==='teacherStudent') result=teacherStudentResponse_(payload.teacher_token,payload.student_id);
+    else if(action==='teacherLogout') result=teacherLogout_(payload.teacher_token);
     else throw new Error('คำสั่งไม่ถูกต้อง');
+
     return postMessageOutput_({ok:true,token:token,result:result});
-  }catch(err){return postMessageOutput_({ok:false,token:token,message:safeError_(err)});}
+  }catch(err){
+    return postMessageOutput_({ok:false,token:token,message:safeError_(err)});
+  }
 }
 
 function lookupStudentResponse_(studentId){
@@ -81,6 +93,10 @@ function lookupStudent_(studentId){
 
 function publicStudent_(s){
   return {student_id:s.student_id,class_room:s.class_room,title:s.title,first_name:s.first_name,last_name:s.last_name,citizen_id:s.citizen_id};
+}
+
+function teacherPublicStudent_(s){
+  return {student_id:s.student_id,class_room:s.class_room,title:s.title,first_name:s.first_name,last_name:s.last_name};
 }
 
 function getStudentRecords_(student){
@@ -152,6 +168,156 @@ function deleteRecord_(p){
     throw new Error('ไม่พบรายการที่ต้องการลบ');
   }finally{lock.releaseLock();}
 }
+
+/* ========================= TEACHER MODE ========================= */
+
+function teacherLogin_(code){
+  const value=String(code||'').trim();
+  const expected=getTeacherCode_();
+  if(!value || value!==expected) throw new Error('รหัสสำหรับครูไม่ถูกต้อง');
+
+  const session=Utilities.getUuid().replace(/-/g,'');
+  CacheService.getScriptCache().put('teacher:'+session,'1',TEACHER_SESSION_SECONDS);
+  return {teacher_token:session,dashboard:teacherDashboardData_()};
+}
+
+function teacherDashboardResponse_(session){
+  requireTeacherSession_(session);
+  refreshTeacherSession_(session);
+  return teacherDashboardData_();
+}
+
+function teacherStudentResponse_(session,studentId){
+  requireTeacherSession_(session);
+  refreshTeacherSession_(session);
+  const student=mustStudent_(studentId);
+  const records=getStudentRecords_(student).map(teacherRecord_);
+  return {student:teacherPublicStudent_(student),records:records};
+}
+
+function teacherLogout_(session){
+  const key='teacher:'+String(session||'');
+  CacheService.getScriptCache().remove(key);
+  return {success:true};
+}
+
+function getTeacherCode_(){
+  return PropertiesService.getScriptProperties().getProperty('TEACHER_CODE') || DEFAULT_TEACHER_CODE;
+}
+
+function requireTeacherSession_(session){
+  const token=String(session||'').trim();
+  if(!token || CacheService.getScriptCache().get('teacher:'+token)!=='1'){
+    throw new Error('สิทธิ์ครูหมดอายุ กรุณาเข้าสู่ระบบใหม่');
+  }
+}
+
+function refreshTeacherSession_(session){
+  CacheService.getScriptCache().put('teacher:'+String(session||''),'1',TEACHER_SESSION_SECONDS);
+}
+
+function getAllActiveStudents_(){
+  const sheet=SpreadsheetApp.openById(STUDENT_SPREADSHEET_ID).getSheetByName(STUDENT_SHEET_NAME);
+  if(!sheet) throw new Error('ไม่พบชีตรายชื่อนักเรียน');
+  const last=sheet.getLastRow();
+  if(last<4) return [];
+  const rows=sheet.getRange(4,2,last-3,12).getDisplayValues();
+  return rows.map(row=>({
+    citizen_id:String(row[0]||'').trim(),
+    student_id:String(row[1]||'').trim(),
+    class_room:String(row[2]||'').trim(),
+    title:String(row[3]||'').trim(),
+    first_name:String(row[4]||'').trim(),
+    last_name:String(row[5]||'').trim(),
+    status:String(row[10]||'').trim()
+  })).filter(s=>s.student_id && (!s.status || s.status==='กำลังศึกษาอยู่'));
+}
+
+function buildRecordCountMap_(){
+  const ss=SpreadsheetApp.openById(DATA_SPREADSHEET_ID);
+  const map={};
+  Object.keys(CONFIG).forEach(type=>{
+    const cfg=CONFIG[type],sheet=ss.getSheetByName(cfg.sheet);
+    if(!sheet) return;
+    const last=sheet.getLastRow();
+    if(last<2) return;
+    const ids=sheet.getRange(2,1,last-1,1).getDisplayValues();
+    ids.forEach(row=>{
+      const citizen=String(row[0]||'').trim();
+      if(!citizen) return;
+      if(!map[citizen]) map[citizen]={activity:0,prize:0,project:0,course:0,total:0};
+      map[citizen][type]=(map[citizen][type]||0)+1;
+      map[citizen].total++;
+    });
+  });
+  return map;
+}
+
+function teacherDashboardData_(){
+  const students=getAllActiveStudents_();
+  const countMap=buildRecordCountMap_();
+  const summaries=students.map(s=>{
+    const c=countMap[s.citizen_id]||{activity:0,prize:0,project:0,course:0,total:0};
+    return {
+      student_id:s.student_id,
+      class_room:s.class_room,
+      title:s.title,
+      first_name:s.first_name,
+      last_name:s.last_name,
+      submitted:c.total>0,
+      total_records:c.total,
+      counts:{activity:c.activity||0,prize:c.prize||0,project:c.project||0,course:c.course||0}
+    };
+  });
+
+  summaries.sort((a,b)=>{
+    const room=String(a.class_room).localeCompare(String(b.class_room),'th');
+    if(room!==0) return room;
+    return Number(a.student_id||0)-Number(b.student_id||0);
+  });
+
+  const roomMap={};
+  summaries.forEach(s=>{
+    const room=s.class_room||'ไม่ระบุห้อง';
+    if(!roomMap[room]) roomMap[room]={class_room:room,total:0,submitted:0,not_submitted:0,records:0};
+    roomMap[room].total++;
+    roomMap[room].records+=Number(s.total_records||0);
+    if(Number(s.total_records||0)>0) roomMap[room].submitted++;
+    else roomMap[room].not_submitted++;
+  });
+
+  const rooms=Object.keys(roomMap).sort().map(k=>roomMap[k]);
+  const totalRecords=summaries.reduce((sum,s)=>sum+Number(s.total_records||0),0);
+  const submitted=summaries.filter(s=>Number(s.total_records||0)>0).length;
+
+  return {
+    generated_at:Utilities.formatDate(new Date(),'Asia/Bangkok','dd/MM/yyyy HH:mm:ss'),
+    total_students:summaries.length,
+    submitted_students:submitted,
+    not_submitted_students:summaries.length-submitted,
+    total_records:totalRecords,
+    rooms:rooms,
+    students:summaries
+  };
+}
+
+function teacherRecord_(record){
+  const out={};
+  Object.keys(record).forEach(key=>{
+    if(['citizen_id','title','first_name','last_name'].indexOf(key)!==-1) return;
+    out[key]=record[key];
+  });
+  return out;
+}
+
+// ถ้าต้องการเปลี่ยนรหัสภายหลัง ให้ไปที่ Project Settings > Script Properties
+// ตั้งชื่อ property ว่า TEACHER_CODE เช่น 654321
+function setDefaultTeacherCode(){
+  PropertiesService.getScriptProperties().setProperty('TEACHER_CODE','123456');
+  return 'ตั้งรหัสครูเป็น 123456 แล้ว';
+}
+
+/* ========================= END TEACHER MODE ========================= */
 
 function findEntryRow_(sheet,id){
   const last=sheet.getLastRow();
