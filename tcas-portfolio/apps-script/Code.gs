@@ -11,9 +11,10 @@ const STUDENT_SPREADSHEET_ID = '1gXl-v84hWWemlZ2ATEQhSPQSkxUhKmT7AlPpR0-QCIY';
 const STUDENT_SHEET_NAME = 'Student List';
 const EVIDENCE_FOLDER_ID = '1BPExo71uPO1WPc1L1GP3mlK1TDDZx2Kb';
 const ATTACHMENT_SHEET = 'attachments';
-const ALLOWED_ORIGIN = 'https://theerawa21.github.io';
-const TEACHER_SESSION_SECONDS = 21600; // 6 ชั่วโมง
 const DASHBOARD_CACHE_SECONDS = 90;
+const DEFAULT_SESSION_SECONDS = 21600; // 6 ชั่วโมง
+const DEFAULT_LOGIN_MAX_ATTEMPTS = 5;
+const DEFAULT_LOGIN_LOCK_SECONDS = 900; // 15 นาที
 
 const CONFIG = {
   activity: {sheet:'activities', headers:['citizen_id','title','first_name','last_name','program_title','exp_name','description','date','end_date','year','level','hours','fee']},
@@ -32,8 +33,7 @@ function doGet(e) {
     const action = String(p.action || '').trim();
     let result;
 
-    if (action === 'lookup') result = lookupStudentResponse_(p.student_id);
-    else if (action === 'records') result = recordsResponse_(p.student_id);
+    if (action === 'lookup' || action === 'records') result = {ok:false, message:'กรุณาเข้าสู่ระบบด้วยรหัสนักเรียนและเลขท้ายบัตรประชาชน 4 หลัก'};
     else if (action === 'health') result = {ok:true, message:'TCAS API พร้อมใช้งาน', time:new Date().toISOString()};
     else result = {ok:true, message:'TCAS API พร้อมใช้งาน'};
 
@@ -52,7 +52,10 @@ function doPost(e) {
     token = String(payload._token || '');
     let result;
 
-    if (action === 'save') result = saveRecord_(payload);
+    if (action === 'studentLogin') result = studentLogin_(payload.student_id, payload.citizen_last4);
+    else if (action === 'studentRecords') result = recordsResponse_(payload.student_token);
+    else if (action === 'studentLogout') result = studentLogout_(payload.student_token);
+    else if (action === 'save') result = saveRecord_(payload);
     else if (action === 'update') result = updateRecord_(payload);
     else if (action === 'delete') result = deleteRecord_(payload);
     else if (action === 'teacherLogin') result = teacherLogin_(payload.teacher_code);
@@ -68,16 +71,33 @@ function doPost(e) {
 }
 
 /* ========================= STUDENTS ========================= */
-function lookupStudentResponse_(id) {
+function studentLogin_(id, citizenLast4) {
+  id = normalizeDigits_(id);
+  citizenLast4 = normalizeDigits_(citizenLast4);
+  if (!id || citizenLast4.length !== 4) throw new Error('กรุณากรอกรหัสนักเรียนและเลขท้ายบัตรประชาชน 4 หลัก');
+
+  const rateKey = 'student:' + secureKey_(id);
+  requireLoginAllowed_(rateKey);
   const s = lookupStudent_(id);
-  if (!s) return {ok:false, message:'ไม่พบรหัสประจำตัวนักเรียนนี้'};
-  if (s.status && s.status !== 'กำลังศึกษาอยู่') return {ok:false, message:'ข้อมูลนักเรียนรายนี้ไม่ได้อยู่ในสถานะกำลังศึกษา'};
-  return {ok:true, student:publicStudent_(s)};
+  const actualLast4 = s ? normalizeDigits_(s.citizen_id).slice(-4) : '';
+  if (!s || (s.status && s.status !== 'กำลังศึกษาอยู่') || !secureEqual_(actualLast4, citizenLast4)) {
+    recordLoginFailure_(rateKey);
+    throw new Error('รหัสนักเรียนหรือเลขท้ายบัตรประชาชนไม่ถูกต้อง');
+  }
+
+  clearLoginFailures_(rateKey);
+  const token = createSessionToken_('student', {student_id:s.student_id}, sessionSeconds_('STUDENT_SESSION_SECONDS'));
+  return {student_token:token, student:publicStudent_(s), expires_in:sessionSeconds_('STUDENT_SESSION_SECONDS')};
 }
 
-function recordsResponse_(id) {
-  const s = mustStudent_(id);
-  return {ok:true, student:publicStudent_(s), records:getStudentRecords_(s)};
+function recordsResponse_(studentToken) {
+  const s = requireStudentSession_(studentToken);
+  return {ok:true, student:publicStudent_(s), records:getStudentRecords_(s).map(publicRecord_)};
+}
+
+function studentLogout_(studentToken) {
+  removeSession_('student', studentToken);
+  return {success:true};
 }
 
 function lookupStudent_(id) {
@@ -105,7 +125,7 @@ function lookupStudent_(id) {
 }
 
 function publicStudent_(s) {
-  return {student_id:s.student_id, class_room:s.class_room, title:s.title, first_name:s.first_name, last_name:s.last_name, citizen_id:s.citizen_id};
+  return {student_id:s.student_id, class_room:s.class_room, title:s.title, first_name:s.first_name, last_name:s.last_name};
 }
 
 function teacherPublicStudent_(s) {
@@ -117,6 +137,12 @@ function mustStudent_(id) {
   if (!s) throw new Error('ไม่พบข้อมูลนักเรียน');
   if (s.status && s.status !== 'กำลังศึกษาอยู่') throw new Error('สถานะนักเรียนไม่ถูกต้อง');
   return s;
+}
+
+function requireStudentSession_(token) {
+  const data = requireSession_('student', token, 'เซสชันนักเรียนหมดอายุ กรุณาเข้าสู่ระบบใหม่');
+  refreshSession_('student', token, data, sessionSeconds_('STUDENT_SESSION_SECONDS'));
+  return mustStudent_(data.student_id);
 }
 
 /* ========================= RECORDS ========================= */
@@ -152,7 +178,7 @@ function getStudentRecords_(student) {
 }
 
 function saveRecord_(p) {
-  const student = mustStudent_(p.student_id);
+  const student = requireStudentSession_(p.student_token);
   const type = mustType_(p.type);
   const cfg = CONFIG[type];
   validate_(type, p);
@@ -177,7 +203,7 @@ function saveRecord_(p) {
 }
 
 function updateRecord_(p) {
-  const student = mustStudent_(p.student_id);
+  const student = requireStudentSession_(p.student_token);
   const type = mustType_(p.type);
   const cfg = CONFIG[type];
   validate_(type, p);
@@ -204,7 +230,7 @@ function updateRecord_(p) {
 }
 
 function deleteRecord_(p) {
-  const student = mustStudent_(p.student_id);
+  const student = requireStudentSession_(p.student_token);
   const entryId = String(p.entry_id || '');
   if (!entryId) throw new Error('ไม่พบรหัสรายการ');
 
@@ -337,11 +363,16 @@ function safeFolder_(v) {
 /* ========================= TEACHER MODE ========================= */
 function teacherLogin_(code) {
   const value = String(code || '').trim();
+  const rateKey = 'teacher:' + secureKey_('teacher-login');
+  requireLoginAllowed_(rateKey);
   const expected = getTeacherCode_();
-  if (!value || value !== expected) throw new Error('รหัสสำหรับครูไม่ถูกต้อง');
+  if (!value || !secureEqual_(value, expected)) {
+    recordLoginFailure_(rateKey);
+    throw new Error('รหัสสำหรับครูไม่ถูกต้อง');
+  }
 
-  const session = Utilities.getUuid().replace(/-/g, '');
-  CacheService.getScriptCache().put('teacher:' + session, '1', TEACHER_SESSION_SECONDS);
+  clearLoginFailures_(rateKey);
+  const session = createSessionToken_('teacher', {role:'teacher'}, sessionSeconds_('TEACHER_SESSION_SECONDS'));
 
   // Login should be quick. Dashboard is loaded by a separate request.
   return {teacher_token:session};
@@ -349,19 +380,17 @@ function teacherLogin_(code) {
 
 function teacherDashboardResponse_(session, forceRefresh) {
   requireTeacherSession_(session);
-  refreshTeacherSession_(session);
   return teacherDashboardDataCached_(String(forceRefresh || '') === '1');
 }
 
 function teacherStudentResponse_(session, studentId) {
   requireTeacherSession_(session);
-  refreshTeacherSession_(session);
   const s = mustStudent_(studentId);
-  return {student:teacherPublicStudent_(s), records:getStudentRecords_(s).map(teacherRecord_)};
+  return {student:teacherPublicStudent_(s), records:getStudentRecords_(s).map(publicRecord_)};
 }
 
 function teacherLogout_(session) {
-  CacheService.getScriptCache().remove('teacher:' + String(session || ''));
+  removeSession_('teacher', session);
   return {success:true};
 }
 
@@ -372,12 +401,8 @@ function getTeacherCode_() {
 }
 
 function requireTeacherSession_(session) {
-  const token = String(session || '').trim();
-  if (!token || CacheService.getScriptCache().get('teacher:' + token) !== '1') throw new Error('สิทธิ์ครูหมดอายุ กรุณาเข้าสู่ระบบใหม่');
-}
-
-function refreshTeacherSession_(session) {
-  CacheService.getScriptCache().put('teacher:' + String(session || ''), '1', TEACHER_SESSION_SECONDS);
+  const data = requireSession_('teacher', session, 'สิทธิ์ครูหมดอายุ กรุณาเข้าสู่ระบบใหม่');
+  refreshSession_('teacher', session, data, sessionSeconds_('TEACHER_SESSION_SECONDS'));
 }
 
 function teacherDashboardDataCached_(forceRefresh) {
@@ -480,7 +505,7 @@ function teacherDashboardData_() {
   };
 }
 
-function teacherRecord_(record) {
+function publicRecord_(record) {
   const out = {};
   Object.keys(record).forEach(key => {
     if (['citizen_id','title','first_name','last_name'].indexOf(key) !== -1) return;
@@ -532,6 +557,120 @@ function setupSheets_() {
 }
 
 /* ========================= HELPERS ========================= */
+function scriptProperty_(name) {
+  return String(PropertiesService.getScriptProperties().getProperty(name) || '').trim();
+}
+
+function sessionSecret_() {
+  const secret = scriptProperty_('SESSION_SECRET');
+  if (secret.length < 32) throw new Error('ยังไม่ได้ตั้งค่า SESSION_SECRET อย่างน้อย 32 ตัวอักษรใน Script Properties');
+  return secret;
+}
+
+function sessionSeconds_(propertyName) {
+  const value = Number(scriptProperty_(propertyName) || DEFAULT_SESSION_SECONDS);
+  return Math.max(300, Math.min(21600, isFinite(value) ? Math.floor(value) : DEFAULT_SESSION_SECONDS));
+}
+
+function loginMaxAttempts_() {
+  const value = Number(scriptProperty_('LOGIN_MAX_ATTEMPTS') || DEFAULT_LOGIN_MAX_ATTEMPTS);
+  return Math.max(3, Math.min(20, isFinite(value) ? Math.floor(value) : DEFAULT_LOGIN_MAX_ATTEMPTS));
+}
+
+function loginLockSeconds_() {
+  const value = Number(scriptProperty_('LOGIN_LOCK_SECONDS') || DEFAULT_LOGIN_LOCK_SECONDS);
+  return Math.max(60, Math.min(21600, isFinite(value) ? Math.floor(value) : DEFAULT_LOGIN_LOCK_SECONDS));
+}
+
+function normalizeDigits_(value) {
+  return String(value || '').replace(/\D/g, '');
+}
+
+function hmac_(value) {
+  return Utilities.base64EncodeWebSafe(Utilities.computeHmacSha256Signature(String(value), sessionSecret_())).replace(/=+$/g, '');
+}
+
+function secureKey_(value) {
+  return hmac_('key:' + String(value)).slice(0, 32);
+}
+
+function secureEqual_(left, right) {
+  left = String(left || '');
+  right = String(right || '');
+  let diff = left.length ^ right.length;
+  const length = Math.max(left.length, right.length);
+  for (let i = 0; i < length; i++) diff |= (left.charCodeAt(i % Math.max(left.length, 1)) || 0) ^ (right.charCodeAt(i % Math.max(right.length, 1)) || 0);
+  return diff === 0;
+}
+
+function createSessionToken_(kind, data, seconds) {
+  const id = Utilities.getUuid().replace(/-/g, '') + Utilities.getUuid().replace(/-/g, '');
+  const token = id + '.' + hmac_(kind + ':' + id);
+  refreshSession_(kind, token, data, seconds);
+  return token;
+}
+
+function validSessionToken_(kind, token) {
+  token = String(token || '').trim();
+  const parts = token.split('.');
+  if (parts.length !== 2 || !/^[a-f0-9]{64}$/i.test(parts[0])) return false;
+  return secureEqual_(parts[1], hmac_(kind + ':' + parts[0]));
+}
+
+function sessionCacheKey_(kind, token) {
+  return 'session:' + kind + ':' + secureKey_(String(token));
+}
+
+function requireSession_(kind, token, expiredMessage) {
+  if (!validSessionToken_(kind, token)) throw new Error(expiredMessage);
+  const cached = CacheService.getScriptCache().get(sessionCacheKey_(kind, token));
+  if (!cached) throw new Error(expiredMessage);
+  try { return JSON.parse(cached); } catch (_) { throw new Error(expiredMessage); }
+}
+
+function refreshSession_(kind, token, data, seconds) {
+  if (!validSessionToken_(kind, token)) return;
+  CacheService.getScriptCache().put(sessionCacheKey_(kind, token), JSON.stringify(data), seconds);
+}
+
+function removeSession_(kind, token) {
+  if (!validSessionToken_(kind, token)) return;
+  CacheService.getScriptCache().remove(sessionCacheKey_(kind, token));
+}
+
+function loginRateCacheKey_(rateKey) {
+  return 'login-rate:' + rateKey;
+}
+
+function readLoginRate_(rateKey) {
+  const raw = CacheService.getScriptCache().get(loginRateCacheKey_(rateKey));
+  if (!raw) return {attempts:0, locked_until:0};
+  try { return JSON.parse(raw); } catch (_) { return {attempts:0, locked_until:0}; }
+}
+
+function requireLoginAllowed_(rateKey) {
+  const state = readLoginRate_(rateKey);
+  const remaining = Number(state.locked_until || 0) - Date.now();
+  if (remaining > 0) throw new Error('มีการลองเข้าสู่ระบบหลายครั้งเกินไป กรุณารอ ' + Math.ceil(remaining / 60000) + ' นาทีแล้วลองใหม่');
+}
+
+function recordLoginFailure_(rateKey) {
+  const lock = LockService.getScriptLock();
+  lock.waitLock(5000);
+  try {
+    const state = readLoginRate_(rateKey);
+    state.attempts = Number(state.attempts || 0) + 1;
+    if (state.attempts >= loginMaxAttempts_()) state.locked_until = Date.now() + loginLockSeconds_() * 1000;
+    CacheService.getScriptCache().put(loginRateCacheKey_(rateKey), JSON.stringify(state), loginLockSeconds_());
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function clearLoginFailures_(rateKey) {
+  CacheService.getScriptCache().remove(loginRateCacheKey_(rateKey));
+}
+
 function normalize_(v) {
   return v === null || v === undefined ? '' : String(v).trim();
 }
@@ -544,7 +683,9 @@ function jsonp_(obj, callback) {
 
 function postMessageOutput_(obj) {
   const data = JSON.stringify(Object.assign({source:'tcas-apps-script'}, obj)).replace(/</g, '\\u003c');
-  const html = '<!doctype html><meta charset="utf-8"><script>window.parent.postMessage(' + data + ',' + JSON.stringify(ALLOWED_ORIGIN) + ');<\/script>';
+  const allowedOrigin = scriptProperty_('ALLOWED_ORIGIN');
+  if (!/^https:\/\/[a-z0-9.-]+(?::\d+)?$/i.test(allowedOrigin)) throw new Error('ยังไม่ได้ตั้งค่า ALLOWED_ORIGIN ที่ถูกต้องใน Script Properties');
+  const html = '<!doctype html><meta charset="utf-8"><script>window.parent.postMessage(' + data + ',' + JSON.stringify(allowedOrigin) + ');<\/script>';
   return HtmlService.createHtmlOutput(html).setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
 
