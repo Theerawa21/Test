@@ -1,3 +1,4 @@
+
 /**
  * TCAS Portfolio Backend
  * Student records + Teacher dashboard + Evidence images
@@ -11,6 +12,7 @@ const STUDENT_SPREADSHEET_ID = '1gXl-v84hWWemlZ2ATEQhSPQSkxUhKmT7AlPpR0-QCIY';
 const STUDENT_SHEET_NAME = 'Student List';
 const EVIDENCE_FOLDER_ID = '1BPExo71uPO1WPc1L1GP3mlK1TDDZx2Kb';
 const ATTACHMENT_SHEET = 'attachments';
+const REVIEW_SHEET = 'reviews';
 const DASHBOARD_CACHE_SECONDS = 90;
 const DEFAULT_SESSION_SECONDS = 21600; // 6 ชั่วโมง
 const DEFAULT_LOGIN_MAX_ATTEMPTS = 5;
@@ -25,6 +27,7 @@ const CONFIG = {
 
 const LEVELS = ['', 'school', 'district', 'regional', 'national', 'international'];
 const ATT_HEADERS = ['attachment_id','entry_id','citizen_id','student_id','class_room','type','file_id','file_name','mime_type','drive_url','created_at'];
+const REVIEW_HEADERS = ['review_id','entry_id','citizen_id','student_id','type','feedback','due_date','status','created_at','updated_at','resubmitted_at'];
 
 /* ========================= WEB APP ========================= */
 function doGet(e) {
@@ -61,6 +64,7 @@ function doPost(e) {
     else if (action === 'teacherLogin') result = teacherLogin_(payload.teacher_code);
     else if (action === 'teacherDashboard') result = teacherDashboardResponse_(payload.teacher_token, payload.force_refresh);
     else if (action === 'teacherStudent') result = teacherStudentResponse_(payload.teacher_token, payload.student_id);
+    else if (action === 'teacherReview') result = teacherReviewResponse_(payload.teacher_token, payload);
     else if (action === 'teacherLogout') result = teacherLogout_(payload.teacher_token);
     else throw new Error('คำสั่งไม่ถูกต้อง');
 
@@ -173,7 +177,11 @@ function getStudentRecords_(student) {
   });
 
   const attachmentMap = getAttachmentMap_(student.citizen_id);
-  out.forEach(r => r.attachments = attachmentMap[r.entry_id] || []);
+  const reviewMap = getReviewMap_(student.citizen_id);
+  out.forEach(r => {
+    r.attachments = attachmentMap[r.entry_id] || [];
+    r.review = reviewMap[r.entry_id] || null;
+  });
   return out;
 }
 
@@ -222,6 +230,7 @@ function updateRecord_(p) {
     sh.getRange(row, 1, 1, cfg.headers.length).setValues([studentRow_(student, cfg, p)]).setVerticalAlignment('top').setWrap(true);
     sh.getRange(row, 1).setNumberFormat('@').setNote(entryId);
     const attachments = uploadEvidence_(student, type, entryId, String(p.year || ''), p.images || []);
+    markReviewResubmitted_(entryId, student.citizen_id);
     clearTeacherDashboardCache_();
     return {entry_id:entryId, attachments:attachments};
   } finally {
@@ -245,6 +254,7 @@ function deleteRecord_(p) {
       if (!row) continue;
       if (String(sh.getRange(row, 1).getDisplayValue()) !== student.citizen_id) throw new Error('ไม่มีสิทธิ์ลบรายการนี้');
       deleteAttachmentsForEntry_(entryId, student.citizen_id);
+      deleteReviewForEntry_(entryId, student.citizen_id);
       sh.deleteRow(row);
       clearTeacherDashboardCache_();
       return {entry_id:entryId};
@@ -358,6 +368,113 @@ function getOrCreateFolder_(parent, name) {
 
 function safeFolder_(v) {
   return String(v || '').replace(/[\\/:*?"<>|]/g, '-').trim() || 'ไม่ระบุ';
+}
+
+/* ========================= TEACHER REVIEWS ========================= */
+function getReviewMap_(citizenId) {
+  const sh = SpreadsheetApp.openById(DATA_SPREADSHEET_ID).getSheetByName(REVIEW_SHEET);
+  const map = {};
+  if (!sh || sh.getLastRow() < 2) return map;
+  sh.getRange(2, 1, sh.getLastRow() - 1, REVIEW_HEADERS.length).getDisplayValues().forEach(r => {
+    if (String(r[2] || '') !== citizenId) return;
+    map[r[1]] = publicReview_({
+      review_id:r[0], feedback:r[5], due_date:r[6], status:r[7],
+      created_at:r[8], updated_at:r[9], resubmitted_at:r[10]
+    });
+  });
+  return map;
+}
+
+function publicReview_(review) {
+  return {
+    review_id:String(review.review_id || ''),
+    feedback:String(review.feedback || ''),
+    due_date:String(review.due_date || ''),
+    status:String(review.status || ''),
+    created_at:String(review.created_at || ''),
+    updated_at:String(review.updated_at || ''),
+    resubmitted_at:String(review.resubmitted_at || '')
+  };
+}
+
+function teacherReviewResponse_(session, p) {
+  requireTeacherSession_(session);
+  const student = mustStudent_(p.student_id);
+  const entryId = String(p.entry_id || '').trim();
+  const feedback = String(p.feedback || '').trim();
+  const dueDate = String(p.due_date || '').trim();
+  if (!entryId) throw new Error('ไม่พบรายการที่ต้องการตรวจ');
+  if (!feedback) throw new Error('กรุณาระบุข้อเสนอแนะให้นักเรียน');
+  if (feedback.length > 2000) throw new Error('ข้อเสนอแนะยาวเกิน 2,000 ตัวอักษร');
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dueDate)) throw new Error('กรุณากำหนดวันส่งแก้ไข');
+  const today = Utilities.formatDate(new Date(), 'Asia/Bangkok', 'yyyy-MM-dd');
+  if (dueDate < today) throw new Error('วันส่งแก้ไขต้องเป็นวันนี้หรือวันถัดไป');
+
+  const owned = findOwnedEntry_(entryId, student.citizen_id);
+  if (!owned) throw new Error('ไม่พบรายการของนักเรียนคนนี้');
+  const sh = SpreadsheetApp.openById(DATA_SPREADSHEET_ID).getSheetByName(REVIEW_SHEET);
+  if (!sh) throw new Error('ไม่พบชีต reviews กรุณารัน setupSheets() ก่อน');
+
+  const lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+  try {
+    const now = Utilities.formatDate(new Date(), 'Asia/Bangkok', 'dd/MM/yyyy HH:mm:ss');
+    let row = findReviewRow_(sh, entryId, student.citizen_id);
+    let reviewId = Utilities.getUuid();
+    let createdAt = now;
+    if (row) {
+      const current = sh.getRange(row, 1, 1, REVIEW_HEADERS.length).getDisplayValues()[0];
+      reviewId = current[0] || reviewId;
+      createdAt = current[8] || createdAt;
+    } else {
+      row = Math.max(sh.getLastRow() + 1, 2);
+    }
+    sh.getRange(row, 2, 1, 3).setNumberFormat('@');
+    sh.getRange(row, 7).setNumberFormat('@');
+    sh.getRange(row, 1, 1, REVIEW_HEADERS.length).setValues([[
+      reviewId, entryId, student.citizen_id, student.student_id, owned.type,
+      feedback, dueDate, 'needs_revision', createdAt, now, ''
+    ]]).setVerticalAlignment('top').setWrap(true);
+    return {success:true, review:publicReview_({review_id:reviewId, feedback:feedback, due_date:dueDate, status:'needs_revision', created_at:createdAt, updated_at:now, resubmitted_at:''})};
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function findOwnedEntry_(entryId, citizenId) {
+  const ss = SpreadsheetApp.openById(DATA_SPREADSHEET_ID);
+  for (const type of Object.keys(CONFIG)) {
+    const sh = ss.getSheetByName(CONFIG[type].sheet);
+    if (!sh) continue;
+    const row = findEntryRow_(sh, entryId);
+    if (row && String(sh.getRange(row, 1).getDisplayValue()) === citizenId) return {type:type, row:row};
+  }
+  return null;
+}
+
+function findReviewRow_(sh, entryId, citizenId) {
+  if (!sh || sh.getLastRow() < 2) return 0;
+  const values = sh.getRange(2, 2, sh.getLastRow() - 1, 2).getDisplayValues();
+  for (let i = 0; i < values.length; i++) {
+    if (values[i][0] === entryId && values[i][1] === citizenId) return i + 2;
+  }
+  return 0;
+}
+
+function markReviewResubmitted_(entryId, citizenId) {
+  const sh = SpreadsheetApp.openById(DATA_SPREADSHEET_ID).getSheetByName(REVIEW_SHEET);
+  const row = findReviewRow_(sh, entryId, citizenId);
+  if (!row) return;
+  const now = Utilities.formatDate(new Date(), 'Asia/Bangkok', 'dd/MM/yyyy HH:mm:ss');
+  sh.getRange(row, 8).setValue('resubmitted');
+  sh.getRange(row, 10).setValue(now);
+  sh.getRange(row, 11).setValue(now);
+}
+
+function deleteReviewForEntry_(entryId, citizenId) {
+  const sh = SpreadsheetApp.openById(DATA_SPREADSHEET_ID).getSheetByName(REVIEW_SHEET);
+  const row = findReviewRow_(sh, entryId, citizenId);
+  if (row) sh.deleteRow(row);
 }
 
 /* ========================= TEACHER MODE ========================= */
@@ -554,6 +671,17 @@ function setupSheets_() {
   ah.setBackground('#6B4F9C').setFontColor('#FFFFFF').setFontWeight('bold').setWrap(true);
   att.setFrozenRows(1);
   att.getRange('C:C').setNumberFormat('@');
+
+  let reviews = ss.getSheetByName(REVIEW_SHEET);
+  if (!reviews) reviews = ss.insertSheet(REVIEW_SHEET);
+  if (reviews.getMaxColumns() < REVIEW_HEADERS.length) reviews.insertColumnsAfter(reviews.getMaxColumns(), REVIEW_HEADERS.length - reviews.getMaxColumns());
+  const rh = reviews.getRange(1, 1, 1, REVIEW_HEADERS.length);
+  const rv = rh.getDisplayValues()[0];
+  if (REVIEW_HEADERS.some((h, i) => rv[i] !== h)) rh.setValues([REVIEW_HEADERS]);
+  rh.setBackground('#A85D12').setFontColor('#FFFFFF').setFontWeight('bold').setWrap(true);
+  reviews.setFrozenRows(1);
+  reviews.getRange('B:D').setNumberFormat('@');
+  reviews.getRange('G:G').setNumberFormat('@');
 }
 
 /* ========================= HELPERS ========================= */
