@@ -685,10 +685,11 @@ function postMessageOutput_(obj) {
   const data = JSON.stringify(Object.assign({source:'tcas-apps-script'}, obj)).replace(/</g, '\\u003c');
   const allowedOrigin = scriptProperty_('ALLOWED_ORIGIN');
   if (!/^https:\/\/[a-z0-9.-]+(?::\d+)?$/i.test(allowedOrigin)) throw new Error('ยังไม่ได้ตั้งค่า ALLOWED_ORIGIN ที่ถูกต้องใน Script Properties');
-  const html = '<!doctype html><meta charset="utf-8"><script>window.parent.postMessage(' + data + ',' + JSON.stringify(allowedOrigin) + ');<\/script>';
+  const html = '<!doctype html><meta charset="utf-8"><script>window.top.postMessage(' + data + ',' + JSON.stringify(allowedOrigin) + ');<\/script>';
   return HtmlService.createHtmlOutput(html).setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
 
 function safeError_(e) {
   return e && e.message ? String(e.message) : 'เกิดข้อผิดพลาดของระบบ';
 }
+
