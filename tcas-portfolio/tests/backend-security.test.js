@@ -222,3 +222,16 @@ test('teacher detail renders navigation and one review card per student record',
   assert.match(teacherSource, /querySelectorAll\('\[data-review-decision\]'\)/);
 });
 
+test('student UI includes TCASFolio guidance from the school admin handbook', () => {
+  const htmlSource = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
+  const appSource = fs.readFileSync(path.join(__dirname, '..', 'app.js'), 'utf8');
+  assert.match(htmlSource, /คู่มือก่อนบันทึกผลงานตาม TCASFolio/);
+  assert.match(htmlSource, /School \(L1\)/);
+  assert.match(htmlSource, /Regional \(L2\)/);
+  assert.match(htmlSource, /National \(L3\)/);
+  assert.match(htmlSource, /International \(L4\)/);
+  assert.match(htmlSource, /มีการประเมินผ่าน–ไม่ผ่าน คะแนน หรือเกรด/);
+  assert.match(appSource, /ข้อมูลประกอบตาม TCAS Verified/);
+  assert.match(appSource, /เว้นว่างหรือใส่ 0 หากไม่มีค่าใช้จ่าย/);
+});
+

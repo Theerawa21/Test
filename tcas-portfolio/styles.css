@@ -1,5 +1,4 @@
 
-
 :root{
   --navy:#12365a;
   --blue:#2568a9;
@@ -176,6 +175,8 @@ textarea{resize:vertical;min-height:118px;line-height:1.6}
 .form-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:22px}
 .form-actions .btn{min-width:140px}
 .notice{background:#fff9ec;border:1px solid #f1dfb8;color:#7b5b1f;border-radius:14px;padding:12px 14px;font-size:13px;line-height:1.6;margin-bottom:16px}
+.student-guide{margin:-8px 0 22px;border:1px solid #b8d6eb;border-radius:18px;background:#f3f9fd;overflow:hidden}.student-guide summary{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:15px 17px;color:#12365a;font-weight:800;cursor:pointer;list-style:none}.student-guide summary::-webkit-details-marker{display:none}.student-guide summary small{font-size:11px;color:#557086;font-weight:500}.student-guide[open] summary{border-bottom:1px solid #d7e7f2}.student-guide-body{display:grid;grid-template-columns:1.15fr .85fr;gap:14px;padding:16px}.guide-block{background:#fff;border:1px solid #dce8f1;border-radius:14px;padding:14px}.guide-block h3{margin:0 0 8px;font-size:14px}.guide-block ul{margin:0;padding-left:19px;color:#425a70;font-size:12px;line-height:1.75}.level-guide{display:grid;gap:7px}.level-guide span{display:block;background:#f5f8fb;border-radius:9px;padding:8px 10px;font-size:11px;color:#425a70}.level-guide b{color:#12365a}.guide-tip{grid-column:1/-1;background:#fff7e7;border:1px solid #efd8a5;color:#6f511c;border-radius:12px;padding:11px 13px;font-size:12px;line-height:1.65}.level-inline-guide{margin:-3px 0 14px;padding:10px 12px;border-radius:11px;background:#eef7ff;color:#3e5f7d;font-size:12px;line-height:1.65}
+@media(max-width:640px){.student-guide summary{align-items:flex-start;flex-direction:column}.student-guide-body{grid-template-columns:1fr}.guide-tip{grid-column:auto}}
 .config-box{margin-top:18px;border-top:1px solid var(--line);padding-top:18px}
 .config-box code{font-size:11px;background:#f2f5f8;padding:3px 6px;border-radius:6px;word-break:break-all}
 
