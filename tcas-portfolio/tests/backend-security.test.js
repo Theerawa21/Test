@@ -1,4 +1,4 @@
-const assert = require('node:assert/strict');
+�r�^�f��ئ{Nly�'vî���const assert = require('node:assert/strict');
 const crypto = require('node:crypto');
 const fs = require('node:fs');
 const path = require('node:path');
@@ -126,6 +126,21 @@ test('teacher decisions accept only pass or revision-required states', () => {
   assert.throws(() => backend.context.normalizeTeacherDecision_('rejected'), /สถานะการตรวจไม่ถูกต้อง/);
 });
 
+test('teacher review schema and frontend protect shared-code concurrent saves', () => {
+  const backend = createBackend();
+  const headers = Array.from(vm.runInContext('REVIEW_HEADERS', backend.context));
+  assert.equal(headers.at(-1), 'request_id');
+  assert.equal(backend.context.publicReview_({request_id:'review_123456789'}).request_id, 'review_123456789');
+
+  const teacherSource = fs.readFileSync(path.join(__dirname, '..', 'teacher.js'), 'utf8');
+  const htmlSource = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
+  assert.match(teacherSource, /expected_updated_at/);
+  assert.match(teacherSource, /request_id:reviewRequestId/);
+  assert.match(teacherSource, /force_refresh:'1'/);
+  assert.match(htmlSource, /value="pending">รอตรวจ/);
+  assert.match(htmlSource, /value="resubmitted">ส่งแก้ไขแล้ว/);
+});
+
 test('email helpers validate addresses and escape notification content', () => {
   const backend = createBackend();
   assert.equal(backend.context.isValidEmail_('student@example.com'), true);
@@ -234,4 +249,3 @@ test('student UI includes TCASFolio guidance from the school admin handbook', ()
   assert.match(appSource, /ข้อมูลประกอบตาม TCAS Verified/);
   assert.match(appSource, /เว้นว่างหรือใส่ 0 หากไม่มีค่าใช้จ่าย/);
 });
-

@@ -1,4 +1,4 @@
-# TCAS Portfolio Entry — Saint Theresa School
+�r�^�f��ئ{Nly�'vî���# TCAS Portfolio Entry — Saint Theresa School
 
 เว็บ GitHub Pages สำหรับให้นักเรียนบันทึกกิจกรรม รางวัล โครงงาน และหลักสูตร/Certificate ลง Google Sheets พร้อมแนบภาพหลักฐานใน Google Drive และมี Dashboard สำหรับครู
 
@@ -15,6 +15,8 @@
 - teacher session มีวันหมดอายุแบบตายตัวและไม่ถูกต่ออายุทุกครั้งที่เปิด Dashboard/API
 - ทุก teacher API (`teacherDashboard`, `teacherStudent`, `teacherReview`, `teacherLogout`) รับ token ผ่าน POST และตรวจสิทธิ์ฝั่ง Backend
 - ครูให้ผลตรวจแต่ละรายการได้ 2 สถานะ: `ผ่าน` หรือ `ไม่ผ่าน — ให้แก้ไขตามข้อเสนอแนะ`
+- ครูหลายคนใช้รหัสกลาง `TEACHER_CODE` เดียวกันได้ ระบบใช้ request ID ป้องกันการกดซ้ำและตรวจเวลาที่แก้ไขล่าสุดก่อนบันทึก เพื่อไม่ให้ผลตรวจจากอีกหน้าถูกเขียนทับโดยไม่แจ้งเตือน
+- Dashboard กรองคิวได้ตาม `รอตรวจ`, `ส่งแก้ไขแล้ว`, `รอนักเรียนแก้ไข` และ `ตรวจครบแล้ว`
 - เมื่อมีอีเมลนักเรียน ระบบส่งผลตรวจผ่าน `MailApp` และแสดงอีเมลเฉพาะแก่นักเรียนเจ้าของบัญชีหลังยืนยันตัวตนแล้ว
 
 ## Script Properties ที่ต้องตั้งค่า
