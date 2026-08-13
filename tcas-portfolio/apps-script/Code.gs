@@ -1,7 +1,3 @@
-Exit code: 0
-Wall time: 0.7 seconds
-Total output lines: 1074
-Output:
 
 /**
  * TCAS Portfolio Backend
