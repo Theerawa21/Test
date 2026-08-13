@@ -179,3 +179,24 @@ test('authenticated student email update writes only the matching student row', 
   assert.equal(savedEmail, 'new.student@example.com');
   assert.equal(result.student.email, 'new.student@example.com');
 });
+
+test('course form and backend cover the complete certs-courses CSV schema', () => {
+  const backend = createBackend();
+  const expected = [
+    'citizen_id','title','first_name','last_name','course_name','course_level','description','issue_date',
+    'expired_date','score','year','category','level','hours','fee','reflection'
+  ];
+  const headers = Array.from(vm.runInContext('CONFIG.course.headers', backend.context));
+  assert.deepEqual(headers, expected);
+
+  const appSource = fs.readFileSync(path.join(__dirname, '..', 'app.js'), 'utf8');
+  expected.slice(4).forEach(field => assert.match(appSource, new RegExp(`name=["']${field}["']`)));
+
+  const row = backend.context.studentRow_(
+    {citizen_id:'1234567890123', title:'นาย', first_name:'สมชาย', last_name:'ใจดี'},
+    {sheet:'certs-courses', headers:expected},
+    {course_name:'อบรม Unity', issue_date:'10/01/2568', year:'2568'}
+  );
+  assert.equal(row.length, 16);
+  assert.equal(row[8], '0');
+});

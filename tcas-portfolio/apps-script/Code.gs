@@ -311,6 +311,7 @@ function findEntryRow_(sh, entryId) {
 
 function studentRow_(s, cfg, p) {
   const src = Object.assign({}, p, {citizen_id:s.citizen_id, title:s.title, first_name:s.first_name, last_name:s.last_name});
+  if (cfg.sheet === 'certs-courses' && !String(src.expired_date || '').trim()) src.expired_date = '0';
   return cfg.headers.map(h => normalize_(src[h]));
 }
 
@@ -321,4 +322,4 @@ function mustType_(type) {
 }
 
 function validate_(type, p) {
-  if (!String(p.year || '').trim()) throw new Error('กรุณาระบุปีการศึกษ�
+  if (!Str
