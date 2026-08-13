@@ -1,6 +1,3 @@
-Exit code: 0
-Wall time: 0.5 seconds
-Output:
 
 (()=>{'use strict';
 const CFG=window.TCAS_CONFIG||{},T={activity:{icon:'๐',label:'เธเธดเธเธเธฃเธฃเธก',file:'activities.csv'},prize:{icon:'๐',label:'เธฃเธฒเธเธงเธฑเธฅ',file:'prizes.csv'},project:{icon:'๐’ก',label:'เนเธเธฃเธเธเธฒเธ',file:'projects.csv'},course:{icon:'๐“',label:'เธซเธฅเธฑเธเธชเธนเธ•เธฃ / Certificate',file:'certs-courses.csv'}},L=[['','เนเธกเนเธฃเธฐเธเธธ'],['school','เธฃเธฐเธ”เธฑเธเนเธฃเธเน€เธฃเธตเธขเธ'],['district','เธฃเธฐเธ”เธฑเธเน€เธเธ• / เธเธฑเธเธซเธงเธฑเธ”'],['regional','เธฃเธฐเธ”เธฑเธเธ เธนเธกเธดเธ เธฒเธ'],['national','เธฃเธฐเธ”เธฑเธเธเธฃเธฐเน€เธ—เธจ'],['international','เธฃเธฐเธ”เธฑเธเธเธฒเธเธฒเธเธฒเธ•เธด']];
