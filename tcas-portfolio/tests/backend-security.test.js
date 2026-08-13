@@ -1,4 +1,3 @@
-
 const assert = require('node:assert/strict');
 const crypto = require('node:crypto');
 const fs = require('node:fs');
@@ -131,7 +130,52 @@ test('email helpers validate addresses and escape notification content', () => {
   const backend = createBackend();
   assert.equal(backend.context.isValidEmail_('student@example.com'), true);
   assert.equal(backend.context.isValidEmail_('missing-at.example.com'), false);
+  assert.equal(backend.context.normalizeStudentEmail_(' Student@Example.COM '), 'student@example.com');
+  assert.throws(() => backend.context.normalizeStudentEmail_(''), /กรุณากรอกอีเมล/);
+  assert.throws(() => backend.context.normalizeStudentEmail_('invalid-email'), /รูปแบบอีเมลไม่ถูกต้อง/);
+  assert.equal(backend.context.publicStudent_({student_id:'1', email:'student@example.com'}).email, 'student@example.com');
   assert.equal(backend.context.formatThaiDateForEmail_('2026-08-31'), '31/08/2026');
   assert.equal(backend.context.htmlEscape_('<script>"x"</script>'), '&lt;script&gt;&quot;x&quot;&lt;/script&gt;');
 });
 
+test('authenticated student email update writes only the matching student row', () => {
+  const backend = createBackend();
+  let receivedToken = '';
+  let savedEmail = '';
+  const emailCell = {
+    setNumberFormat(format) { assert.equal(format, '@'); return this; },
+    setValue(value) { savedEmail = value; return this; }
+  };
+  const sheet = {
+    getLastRow: () => 4,
+    getRange: (row, column) => {
+      if (row === 4 && column === 3) {
+        return {createTextFinder: value => ({matchEntireCell: exact => ({findNext: () => {
+          assert.equal(value, '14231');
+          assert.equal(exact, true);
+          return {getRow: () => 4};
+        }})})};
+      }
+      if (row === 4 && column === 14) return emailCell;
+      throw new Error(`Unexpected range ${row}:${column}`);
+    }
+  };
+  backend.context.requireStudentSession_ = token => {
+    receivedToken = token;
+    return {student_id:'14231', email:''};
+  };
+  backend.context.SpreadsheetApp = {
+    openById: id => {
+      assert.equal(id, '1gXl-v84hWWemlZ2ATEQhSPQSkxUhKmT7AlPpR0-QCIY');
+      return {getSheetByName: name => {
+        assert.equal(name, 'Student List');
+        return sheet;
+      }};
+    }
+  };
+
+  const result = backend.context.updateStudentEmail_('student-session', ' New.Student@Example.COM ');
+  assert.equal(receivedToken, 'student-session');
+  assert.equal(savedEmail, 'new.student@example.com');
+  assert.equal(result.student.email, 'new.student@example.com');
+});
