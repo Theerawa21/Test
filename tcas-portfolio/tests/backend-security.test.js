@@ -200,3 +200,14 @@ test('course form and backend cover the complete certs-courses CSV schema', () =
   assert.equal(row.length, 16);
   assert.equal(row[8], '0');
 });
+
+test('frontend accepts Apps Script top-frame responses by token and trusted payload marker', () => {
+  const appSource = fs.readFileSync(path.join(__dirname, '..', 'app.js'), 'utf8');
+  const teacherSource = fs.readFileSync(path.join(__dirname, '..', 'teacher.js'), 'utf8');
+  assert.doesNotMatch(appSource, /e\.source\s*!==\s*frame\.contentWindow/);
+  assert.doesNotMatch(teacherSource, /e\.source\s*!==\s*frame\.contentWindow/);
+  assert.match(appSource, /e\.data\.source!=='tcas-apps-script'/);
+  assert.match(teacherSource, /e\.data\.source!=='tcas-apps-script'/);
+  assert.match(appSource, /e\.data\.token!==token/);
+  assert.match(teacherSource, /e\.data\.token!==token/);
+});
