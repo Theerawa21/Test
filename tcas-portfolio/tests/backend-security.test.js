@@ -212,3 +212,13 @@ test('frontend accepts Apps Script top-frame responses by token and trusted payl
   assert.match(teacherSource, /e\.data\.token!==token/);
 });
 
+test('teacher detail renders navigation and one review card per student record', () => {
+  const teacherSource = fs.readFileSync(path.join(__dirname, '..', 'teacher.js'), 'utf8');
+  assert.match(teacherSource, /records\.map\(\(r,index\)=>/);
+  assert.match(teacherSource, /data-record-index/);
+  assert.match(teacherSource, /data-record-jump/);
+  assert.match(teacherSource, /ผลงานทั้งหมด/);
+  assert.match(teacherSource, /รายการที่/);
+  assert.match(teacherSource, /querySelectorAll\('\[data-review-decision\]'\)/);
+});
+
