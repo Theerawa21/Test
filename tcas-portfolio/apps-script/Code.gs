@@ -14,12 +14,12 @@ const EVIDENCE_FOLDER_ID = '1BPExo71uPO1WPc1L1GP3mlK1TDDZx2Kb';
 const ATTACHMENT_SHEET = 'attachments';
 const REVIEW_SHEET = 'reviews';
 const DASHBOARD_CACHE_SECONDS = 90;
-const DEFAULT_SESSION_SECONDS = 21600; // 6 เธเธฑเนเธงเนเธกเธ
+const DEFAULT_SESSION_SECONDS = 21600; // 6 ชั่วโมง
 const DEFAULT_LOGIN_MAX_ATTEMPTS = 5;
-const DEFAULT_LOGIN_LOCK_SECONDS = 900; // 15 เธเธฒเธ—เธต
+const DEFAULT_LOGIN_LOCK_SECONDS = 900; // 15 นาที
 const DEFAULT_ALLOWED_ORIGIN = 'https://theerawa21.github.io';
 const PORTFOLIO_APP_URL = 'https://theerawa21.github.io/Test/tcas-portfolio/';
-const SCHOOL_NAME = 'เนเธฃเธเน€เธฃเธตเธขเธเน€เธเธเธ•เนเน€เธ—เน€เธฃเธเธฒ';
+const SCHOOL_NAME = 'โรงเรียนเซนต์เทเรซา';
 
 const CONFIG = {
   activity: {sheet:'activities', headers:['citizen_id','title','first_name','last_name','program_title','exp_name','description','date','end_date','year','level','hours','fee']},
@@ -39,9 +39,9 @@ function doGet(e) {
     const action = String(p.action || '').trim();
     let result;
 
-    if (action === 'lookup' || action === 'records') result = {ok:false, message:'เธเธฃเธธเธ“เธฒเน€เธเนเธฒเธชเธนเนเธฃเธฐเธเธเธ”เนเธงเธขเธฃเธซเธฑเธชเธเธฑเธเน€เธฃเธตเธขเธเนเธฅเธฐเน€เธฅเธเธ—เนเธฒเธขเธเธฑเธ•เธฃเธเธฃเธฐเธเธฒเธเธ 4 เธซเธฅเธฑเธ'};
-    else if (action === 'health') result = {ok:true, message:'TCAS API เธเธฃเนเธญเธกเนเธเนเธเธฒเธ', time:new Date().toISOString()};
-    else result = {ok:true, message:'TCAS API เธเธฃเนเธญเธกเนเธเนเธเธฒเธ'};
+    if (action === 'lookup' || action === 'records') result = {ok:false, message:'กรุณาเข้าสู่ระบบด้วยรหัสนักเรียนและเลขท้ายบัตรประชาชน 4 หลัก'};
+    else if (action === 'health') result = {ok:true, message:'TCAS API พร้อมใช้งาน', time:new Date().toISOString()};
+    else result = {ok:true, message:'TCAS API พร้อมใช้งาน'};
 
     return jsonp_(result, p.callback);
   } catch (err) {
@@ -71,7 +71,7 @@ function doPost(e) {
     else if (action === 'teacherStudent') result = teacherStudentResponse_(payload.teacher_token, payload.student_id);
     else if (action === 'teacherReview') result = teacherReviewResponse_(payload.teacher_token, payload);
     else if (action === 'teacherLogout') result = teacherLogout_(payload.teacher_token);
-    else throw new Error('เธเธณเธชเธฑเนเธเนเธกเนเธ–เธนเธเธ•เนเธญเธ');
+    else throw new Error('คำสั่งไม่ถูกต้อง');
 
     return postMessageOutput_({ok:true, token:token, result:result});
   } catch (err) {
@@ -83,15 +83,15 @@ function doPost(e) {
 function studentLogin_(id, citizenLast4) {
   id = normalizeDigits_(id);
   citizenLast4 = normalizeDigits_(citizenLast4);
-  if (!id || citizenLast4.length !== 4) throw new Error('เธเธฃเธธเธ“เธฒเธเธฃเธญเธเธฃเธซเธฑเธชเธเธฑเธเน€เธฃเธตเธขเธเนเธฅเธฐเน€เธฅเธเธ—เนเธฒเธขเธเธฑเธ•เธฃเธเธฃเธฐเธเธฒเธเธ 4 เธซเธฅเธฑเธ');
+  if (!id || citizenLast4.length !== 4) throw new Error('กรุณากรอกรหัสนักเรียนและเลขท้ายบัตรประชาชน 4 หลัก');
 
   const rateKey = 'student:' + secureKey_(id);
   requireLoginAllowed_(rateKey);
   const s = lookupStudent_(id);
   const actualLast4 = s ? normalizeDigits_(s.citizen_id).slice(-4) : '';
-  if (!s || (s.status && s.status !== 'เธเธณเธฅเธฑเธเธจเธถเธเธฉเธฒเธญเธขเธนเน') || !secureEqual_(actualLast4, citizenLast4)) {
+  if (!s || (s.status && s.status !== 'กำลังศึกษาอยู่') || !secureEqual_(actualLast4, citizenLast4)) {
     const rate = recordLoginFailure_(rateKey);
-    throwLoginFailure_(rate, 'เธฃเธซเธฑเธชเธเธฑเธเน€เธฃเธตเธขเธเธซเธฃเธทเธญเน€เธฅเธเธ—เนเธฒเธขเธเธฑเธ•เธฃเธเธฃเธฐเธเธฒเธเธเนเธกเนเธ–เธนเธเธ•เนเธญเธ');
+    throwLoginFailure_(rate, 'รหัสนักเรียนหรือเลขท้ายบัตรประชาชนไม่ถูกต้อง');
   }
 
   clearLoginFailures_(rateKey);
@@ -114,12 +114,12 @@ function updateStudentEmail_(studentToken, email) {
   email = normalizeStudentEmail_(email);
 
   const sh = SpreadsheetApp.openById(STUDENT_SPREADSHEET_ID).getSheetByName(STUDENT_SHEET_NAME);
-  if (!sh) throw new Error('เนเธกเนเธเธเธเธตเธ•เธฃเธฒเธขเธเธทเนเธญเธเธฑเธเน€เธฃเธตเธขเธ');
+  if (!sh) throw new Error('ไม่พบชีตรายชื่อนักเรียน');
   const last = sh.getLastRow();
-  if (last < 4) throw new Error('เนเธกเนเธเธเธเนเธญเธกเธนเธฅเธเธฑเธเน€เธฃเธตเธขเธ');
+  if (last < 4) throw new Error('ไม่พบข้อมูลนักเรียน');
 
   const found = sh.getRange(4, 3, last - 3, 1).createTextFinder(student.student_id).matchEntireCell(true).findNext();
-  if (!found) throw new Error('เนเธกเนเธเธเธเนเธญเธกเธนเธฅเธเธฑเธเน€เธฃเธตเธขเธ');
+  if (!found) throw new Error('ไม่พบข้อมูลนักเรียน');
 
   const lock = LockService.getScriptLock();
   lock.waitLock(15000);
@@ -135,8 +135,8 @@ function updateStudentEmail_(studentToken, email) {
 
 function normalizeStudentEmail_(email) {
   const value = String(email || '').trim().toLowerCase();
-  if (!value) throw new Error('เธเธฃเธธเธ“เธฒเธเธฃเธญเธเธญเธตเน€เธกเธฅเธชเธณเธซเธฃเธฑเธเธฃเธฑเธเนเธเนเธเธเธฅ');
-  if (value.length > 254 || !isValidEmail_(value)) throw new Error('เธฃเธนเธเนเธเธเธญเธตเน€เธกเธฅเนเธกเนเธ–เธนเธเธ•เนเธญเธ เธเธฃเธธเธ“เธฒเธ•เธฃเธงเธเธชเธญเธเธญเธตเธเธเธฃเธฑเนเธ');
+  if (!value) throw new Error('กรุณากรอกอีเมลสำหรับรับแจ้งผล');
+  if (value.length > 254 || !isValidEmail_(value)) throw new Error('รูปแบบอีเมลไม่ถูกต้อง กรุณาตรวจสอบอีกครั้ง');
   return value;
 }
 
@@ -145,7 +145,7 @@ function lookupStudent_(id) {
   if (!id) return null;
 
   const sh = SpreadsheetApp.openById(STUDENT_SPREADSHEET_ID).getSheetByName(STUDENT_SHEET_NAME);
-  if (!sh) throw new Error('เนเธกเนเธเธเธเธตเธ•เธฃเธฒเธขเธเธทเนเธญเธเธฑเธเน€เธฃเธตเธขเธ');
+  if (!sh) throw new Error('ไม่พบชีตรายชื่อนักเรียน');
   const last = sh.getLastRow();
   if (last < 4) return null;
 
@@ -175,13 +175,13 @@ function teacherPublicStudent_(s) {
 
 function mustStudent_(id) {
   const s = lookupStudent_(id);
-  if (!s) throw new Error('เนเธกเนเธเธเธเนเธญเธกเธนเธฅเธเธฑเธเน€เธฃเธตเธขเธ');
-  if (s.status && s.status !== 'เธเธณเธฅเธฑเธเธจเธถเธเธฉเธฒเธญเธขเธนเน') throw new Error('เธชเธ–เธฒเธเธฐเธเธฑเธเน€เธฃเธตเธขเธเนเธกเนเธ–เธนเธเธ•เนเธญเธ');
+  if (!s) throw new Error('ไม่พบข้อมูลนักเรียน');
+  if (s.status && s.status !== 'กำลังศึกษาอยู่') throw new Error('สถานะนักเรียนไม่ถูกต้อง');
   return s;
 }
 
 function requireStudentSession_(token) {
-  const data = requireSession_('student', token, 'เน€เธเธชเธเธฑเธเธเธฑเธเน€เธฃเธตเธขเธเธซเธกเธ”เธญเธฒเธขเธธ เธเธฃเธธเธ“เธฒเน€เธเนเธฒเธชเธนเนเธฃเธฐเธเธเนเธซเธกเน');
+  const data = requireSession_('student', token, 'เซสชันนักเรียนหมดอายุ กรุณาเข้าสู่ระบบใหม่');
   return mustStudent_(data.student_id);
 }
 
@@ -231,7 +231,7 @@ function saveRecord_(p) {
   lock.waitLock(30000);
   try {
     const sh = SpreadsheetApp.openById(DATA_SPREADSHEET_ID).getSheetByName(cfg.sheet);
-    if (!sh) throw new Error('เนเธกเนเธเธเธเธตเธ• ' + cfg.sheet + ' เธเธฃเธธเธ“เธฒเธฃเธฑเธ setupSheets() เธเนเธญเธ');
+    if (!sh) throw new Error('ไม่พบชีต ' + cfg.sheet + ' กรุณารัน setupSheets() ก่อน');
 
     const target = Math.max(sh.getLastRow() + 1, 2);
     const entryId = Utilities.getUuid();
@@ -252,16 +252,16 @@ function updateRecord_(p) {
   const cfg = CONFIG[type];
   validate_(type, p);
   const entryId = String(p.entry_id || '');
-  if (!entryId) throw new Error('เนเธกเนเธเธเธฃเธซเธฑเธชเธฃเธฒเธขเธเธฒเธฃ');
+  if (!entryId) throw new Error('ไม่พบรหัสรายการ');
 
   const lock = LockService.getScriptLock();
   lock.waitLock(30000);
   try {
     const sh = SpreadsheetApp.openById(DATA_SPREADSHEET_ID).getSheetByName(cfg.sheet);
-    if (!sh) throw new Error('เนเธกเนเธเธเธเธตเธ• ' + cfg.sheet);
+    if (!sh) throw new Error('ไม่พบชีต ' + cfg.sheet);
     const row = findEntryRow_(sh, entryId);
-    if (!row) throw new Error('เนเธกเนเธเธเธฃเธฒเธขเธเธฒเธฃเธ—เธตเนเธ•เนเธญเธเธเธฒเธฃเนเธเนเนเธ');
-    if (String(sh.getRange(row, 1).getDisplayValue()) !== student.citizen_id) throw new Error('เนเธกเนเธกเธตเธชเธดเธ—เธเธดเนเนเธเนเนเธเธฃเธฒเธขเธเธฒเธฃเธเธตเน');
+    if (!row) throw new Error('ไม่พบรายการที่ต้องการแก้ไข');
+    if (String(sh.getRange(row, 1).getDisplayValue()) !== student.citizen_id) throw new Error('ไม่มีสิทธิ์แก้ไขรายการนี้');
 
     sh.getRange(row, 1, 1, cfg.headers.length).setValues([studentRow_(student, cfg, p)]).setVerticalAlignment('top').setWrap(true);
     sh.getRange(row, 1).setNumberFormat('@').setNote(entryId);
@@ -277,7 +277,7 @@ function updateRecord_(p) {
 function deleteRecord_(p) {
   const student = requireStudentSession_(p.student_token);
   const entryId = String(p.entry_id || '');
-  if (!entryId) throw new Error('เนเธกเนเธเธเธฃเธซเธฑเธชเธฃเธฒเธขเธเธฒเธฃ');
+  if (!entryId) throw new Error('ไม่พบรหัสรายการ');
 
   const lock = LockService.getScriptLock();
   lock.waitLock(30000);
@@ -288,14 +288,14 @@ function deleteRecord_(p) {
       if (!sh) continue;
       const row = findEntryRow_(sh, entryId);
       if (!row) continue;
-      if (String(sh.getRange(row, 1).getDisplayValue()) !== student.citizen_id) throw new Error('เนเธกเนเธกเธตเธชเธดเธ—เธเธดเนเธฅเธเธฃเธฒเธขเธเธฒเธฃเธเธตเน');
+      if (String(sh.getRange(row, 1).getDisplayValue()) !== student.citizen_id) throw new Error('ไม่มีสิทธิ์ลบรายการนี้');
       deleteAttachmentsForEntry_(entryId, student.citizen_id);
       deleteReviewForEntry_(entryId, student.citizen_id);
       sh.deleteRow(row);
       clearTeacherDashboardCache_();
       return {entry_id:entryId};
     }
-    throw new Error('เนเธกเนเธเธเธฃเธฒเธขเธเธฒเธฃเธ—เธตเนเธ•เนเธญเธเธเธฒเธฃเธฅเธ');
+    throw new Error('ไม่พบรายการที่ต้องการลบ');
   } finally {
     lock.releaseLock();
   }
@@ -317,15 +317,61 @@ function studentRow_(s, cfg, p) {
 
 function mustType_(type) {
   const value = String(type || '');
-  if (!CONFIG[value]) throw new Error('เธเธฃเธฐเน€เธ เธ—เธเนเธญเธกเธนเธฅเนเธกเนเธ–เธนเธเธ•เนเธญเธ');
+  if (!CONFIG[value]) throw new Error('ประเภทข้อมูลไม่ถูกต้อง');
   return value;
 }
 
 function validate_(type, p) {
-  if (!String(p.year || '').trim()) throw new Error('เธเธฃเธธเธ“เธฒเธฃเธฐเธเธธเธเธตเธเธฒเธฃเธจเธถเธเธฉเธฒ');
-  if (p.level && !LEVELS.includes(String(p.level))) throw new Error('เธฃเธฐเธ”เธฑเธเธเนเธญเธกเธนเธฅเนเธกเนเธ–เธนเธเธ•เนเธญเธ');
-  if (type === 'activity' && (!p.program_title || !p.exp_name || !p.date)) throw new Error('เธเธฃเธธเธ“เธฒเธเธฃเธญเธเธเธทเนเธญเธเธดเธเธเธฃเธฃเธก เธเธ—เธเธฒเธ— เนเธฅเธฐเธงเธฑเธเธ—เธตเนเน€เธฃเธดเนเธก');
-  if (type === 'prize' && (!p.program_title || !p.prize_name || !p.date)) throw new Error('เธเธฃเธธเธ“เธฒเธเธฃเธญเธเธเธทเนเธญเธเธฒเธฃเนเธเนเธเธเธฑเธ เธฃเธฒเธเธงเธฑเธฅ เนเธฅเธฐเธงเธฑเธเธ—เธตเ…6413 tokens truncated…;
+  if (!String(p.year || '').trim()) throw new Error('กรุณาระบุปีการศึกษา');
+  if (p.level && !LEVELS.includes(String(p.level))) throw new Error('ระดับข้อมูลไม่ถูกต้อง');
+  if (type === 'activity' && (!p.program_title || !p.exp_name || !p.date)) throw new Error('กรุณากรอกชื่อกิจกรรม บทบาท และวันที่เริ่ม');
+  if (type === 'prize' && (!p.program_title || !p.prize_name || !p.date)) throw new Error('กรุณากรอกชื่อการแข่งขัน รางวัล และวันที่');
+  if (type === 'project' && (!p.project_title || !p.project_type || !p.date)) throw new Error('กรุณากรอกชื่อโครงงาน ประเภท และวันที่เริ่ม');
+  if (type === 'course' && (!p.course_name || !p.issue_date)) throw new Error('กรุณากรอกชื่อหลักสูตรและวันที่ออกใบรับรอง');
+}
+
+/* ========================= EVIDENCE IMAGES ========================= */
+function uploadEvidence_(s, type, entryId, year, images) {
+  if (!Array.isArray(images) || !images.length) return [];
+  if (images.length > 4) throw new Error('แนบภาพได้ไม่เกิน 4 ภาพต่อครั้ง');
+
+  const root = DriveApp.getFolderById(EVIDENCE_FOLDER_ID);
+  const yearFolder = getOrCreateFolder_(root, safeFolder_(year || 'ไม่ระบุปี'));
+  const roomFolder = getOrCreateFolder_(yearFolder, safeFolder_(s.class_room || 'ไม่ระบุห้อง'));
+  const studentFolder = getOrCreateFolder_(roomFolder, safeFolder_(s.student_id + '_' + s.first_name + '_' + s.last_name));
+  const typeFolder = getOrCreateFolder_(studentFolder, type);
+
+  const ss = SpreadsheetApp.openById(DATA_SPREADSHEET_ID);
+  const sh = ss.getSheetByName(ATTACHMENT_SHEET);
+  if (!sh) throw new Error('ไม่พบชีต attachments กรุณารัน setupSheets(…4915 tokens truncated…EET_ID).getSheetByName(STUDENT_SHEET_NAME);
+  if (!sh) throw new Error('ไม่พบชีตรายชื่อนักเรียน');
+  const last = sh.getLastRow();
+  if (last < 4) return [];
+
+  return sh.getRange(4, 2, last - 3, 13).getDisplayValues().map(r => ({
+    citizen_id:String(r[0] || '').trim(),
+    student_id:String(r[1] || '').trim(),
+    class_room:String(r[2] || '').trim(),
+    title:String(r[3] || '').trim(),
+    first_name:String(r[4] || '').trim(),
+    last_name:String(r[5] || '').trim(),
+    status:String(r[10] || '').trim(),
+    email:String(r[12] || '').trim()
+  })).filter(s => s.student_id && (!s.status || s.status === 'กำลังศึกษาอยู่'));
+}
+
+function buildRecordCountMap_() {
+  const ss = SpreadsheetApp.openById(DATA_SPREADSHEET_ID);
+  const map = {};
+
+  Object.keys(CONFIG).forEach(type => {
+    const sh = ss.getSheetByName(CONFIG[type].sheet);
+    if (!sh || sh.getLastRow() < 2) return;
+
+    sh.getRange(2, 1, sh.getLastRow() - 1, 1).getDisplayValues().forEach(r => {
+      const citizen = String(r[0] || '').trim();
+      if (!citizen) return;
+      if (!map[citizen]) map[citizen] = {activity:0, prize:0, project:0, course:0, total:0};
       map[citizen][type] = (map[citizen][type] || 0) + 1;
       map[citizen].total++;
     });
@@ -389,7 +435,7 @@ function teacherDashboardData_() {
 
   const roomMap = {};
   list.forEach(s => {
-    const room = s.class_room || 'เนเธกเนเธฃเธฐเธเธธเธซเนเธญเธ';
+    const room = s.class_room || 'ไม่ระบุห้อง';
     if (!roomMap[room]) roomMap[room] = {class_room:room, total:0, submitted:0, not_submitted:0, records:0};
     roomMap[room].total++;
     roomMap[room].records += Number(s.total_records || 0);
@@ -424,7 +470,7 @@ function publicRecord_(record) {
 /* ========================= SETUP ========================= */
 function setupSheets() {
   setupSheets_();
-  return 'เธเธฃเนเธญเธกเนเธเนเธเธฒเธ';
+  return 'พร้อมใช้งาน';
 }
 
 function setupSheets_() {
@@ -476,15 +522,15 @@ function setupSheets_() {
 }
 
 /**
- * เน€เธ•เธฃเธตเธขเธกเธเนเธฒเธเธงเธฒเธกเธเธฅเธญเธ”เธ เธฑเธขเธ—เธตเนเธชเธฃเนเธฒเธเนเธ”เนเนเธ”เธขเนเธกเนเธ•เนเธญเธเธเธฑเธ secret เธฅเธเนเธ source code
+ * เตรียมค่าความปลอดภัยที่สร้างได้โดยไม่ต้องฝัง secret ลงใน source code
  *
- * เธงเธดเธเธตเนเธเนเธเธฃเธฑเนเธเนเธฃเธ:
- * 1) เธ•เธฑเนเธ TEACHER_CODE เนเธ Project Settings > Script Properties เธ”เนเธงเธขเธ•เธเน€เธญเธ
- * 2) เธฃเธฑเธ setupConfig() เธเธฒเธ Apps Script editor
- * 3) เธ•เธฃเธงเธ Execution log เนเธฅเนเธง Deploy เน€เธเนเธ New version
+ * วิธีใช้ครั้งแรก:
+ * 1) ตั้ง TEACHER_CODE ใน Project Settings > Script Properties ด้วยตนเอง
+ * 2) รัน setupConfig() จาก Apps Script editor
+ * 3) ตรวจ Execution log แล้ว Deploy เป็น New version
  *
- * เธเธฑเธเธเนเธเธฑเธเธเธตเนเธเธฐเธชเธฃเนเธฒเธ SESSION_SECRET เนเธเธเธชเธธเนเธกเน€เธกเธทเนเธญเธขเธฑเธเนเธกเนเธกเธต เนเธฅเธฐเธ•เธฑเนเธ origin เธเธญเธ
- * GitHub Pages เธเธฑเธเธเธธเธเธฑเธเน€เธกเธทเนเธญเธขเธฑเธเนเธกเนเธกเธต เนเธ•เนเธเธฐเนเธกเนเธชเธฃเนเธฒเธเธฃเธซเธฑเธชเธเธฃเธนเน€เธฃเธดเนเธกเธ•เนเธเธ—เธตเนเธเธฒเธ”เน€เธ”เธฒเนเธ”เน
+ * ฟังก์ชันนี้จะสร้าง SESSION_SECRET แบบสุ่มเมื่อยังไม่มี และตั้ง origin ของ
+ * GitHub Pages ปัจจุบันเมื่อยังไม่มี แต่จะไม่สร้างรหัสครูเริ่มต้นที่คาดเดาได้
  */
 function setupConfig() {
   return setupConfig_();
@@ -502,19 +548,19 @@ function setupConfig_() {
   if (Object.keys(updates).length) props.setProperties(updates, false);
 
   const errors = [];
-  if (!teacherCode) errors.push('เธขเธฑเธเนเธกเนเนเธ”เนเธ•เธฑเนเธเธเนเธฒ TEACHER_CODE เนเธ Script Properties');
-  if (teacherCode && teacherCode.length < 8) errors.push('TEACHER_CODE เธเธงเธฃเธกเธตเธญเธขเนเธฒเธเธเนเธญเธข 8 เธ•เธฑเธงเธญเธฑเธเธฉเธฃ');
+  if (!teacherCode) errors.push('ยังไม่ได้ตั้งค่า TEACHER_CODE ใน Script Properties');
+  if (teacherCode && teacherCode.length < 8) errors.push('TEACHER_CODE ควรมีอย่างน้อย 8 ตัวอักษร');
   const secret = String(props.getProperty('SESSION_SECRET') || '').trim();
-  if (secret.length < 32) errors.push('SESSION_SECRET เธ•เนเธญเธเธกเธตเธญเธขเนเธฒเธเธเนเธญเธข 32 เธ•เธฑเธงเธญเธฑเธเธฉเธฃ');
+  if (secret.length < 32) errors.push('SESSION_SECRET ต้องมีอย่างน้อย 32 ตัวอักษร');
   const origin = String(props.getProperty('ALLOWED_ORIGIN') || '').trim();
-  if (!validAllowedOrigin_(origin)) errors.push('ALLOWED_ORIGIN เธ•เนเธญเธเน€เธเนเธ HTTPS origin เน€เธเนเธ ' + DEFAULT_ALLOWED_ORIGIN);
+  if (!validAllowedOrigin_(origin)) errors.push('ALLOWED_ORIGIN ต้องเป็น HTTPS origin เช่น ' + DEFAULT_ALLOWED_ORIGIN);
 
   const result = {
     ok:errors.length === 0,
     teacher_code_configured:!!teacherCode,
     session_secret_configured:secret.length >= 32,
     allowed_origin:origin,
-    message:errors.length ? errors.join(' | ') : 'เธ•เธฑเนเธเธเนเธฒเธเธงเธฒเธกเธเธฅเธญเธ”เธ เธฑเธขเธเธฃเนเธญเธกเนเธเนเธเธฒเธเนเธฅเนเธง'
+    message:errors.length ? errors.join(' | ') : 'ตั้งค่าความปลอดภัยพร้อมใช้งานแล้ว'
   };
   console.log(JSON.stringify(result));
   if (errors.length) throw new Error(result.message);
@@ -528,7 +574,7 @@ function scriptProperty_(name) {
 
 function sessionSecret_() {
   const secret = scriptProperty_('SESSION_SECRET');
-  if (secret.length < 32) throw new Error('เธขเธฑเธเนเธกเนเนเธ”เนเธ•เธฑเนเธเธเนเธฒ SESSION_SECRET เธญเธขเนเธฒเธเธเนเธญเธข 32 เธ•เธฑเธงเธญเธฑเธเธฉเธฃเนเธ Script Properties');
+  if (secret.length < 32) throw new Error('ยังไม่ได้ตั้งค่า SESSION_SECRET อย่างน้อย 32 ตัวอักษรใน Script Properties');
   return secret;
 }
 
@@ -627,7 +673,7 @@ function readLoginRate_(rateKey) {
 function requireLoginAllowed_(rateKey) {
   const state = readLoginRate_(rateKey);
   const remaining = Number(state.locked_until || 0) - Date.now();
-  if (remaining > 0) throw new Error('เธกเธตเธเธฒเธฃเธฅเธญเธเน€เธเนเธฒเธชเธนเนเธฃเธฐเธเธเธซเธฅเธฒเธขเธเธฃเธฑเนเธเน€เธเธดเธเนเธ เธเธฃเธธเธ“เธฒเธฃเธญ ' + Math.ceil(remaining / 60000) + ' เธเธฒเธ—เธตเนเธฅเนเธงเธฅเธญเธเนเธซเธกเน');
+  if (remaining > 0) throw new Error('มีการลองเข้าสู่ระบบหลายครั้งเกินไป กรุณารอ ' + Math.ceil(remaining / 60000) + ' นาทีแล้วลองใหม่');
 }
 
 function recordLoginFailure_(rateKey) {
@@ -646,7 +692,7 @@ function recordLoginFailure_(rateKey) {
 
 function throwLoginFailure_(state, invalidMessage) {
   const remaining = Number(state && state.locked_until || 0) - Date.now();
-  if (remaining > 0) throw new Error('เธกเธตเธเธฒเธฃเธฅเธญเธเน€เธเนเธฒเธชเธนเนเธฃเธฐเธเธเธซเธฅเธฒเธขเธเธฃเธฑเนเธเน€เธเธดเธเนเธ เธฃเธฐเธเธเธฅเนเธญเธเธเธฑเนเธงเธเธฃเธฒเธง ' + Math.ceil(remaining / 60000) + ' เธเธฒเธ—เธต');
+  if (remaining > 0) throw new Error('มีการลองเข้าสู่ระบบหลายครั้งเกินไป ระบบล็อกชั่วคราว ' + Math.ceil(remaining / 60000) + ' นาที');
   throw new Error(invalidMessage);
 }
 
@@ -670,8 +716,8 @@ function validAllowedOrigin_(origin) {
 
 function requireAllowedOrigin_(requestOrigin) {
   const allowedOrigin = scriptProperty_('ALLOWED_ORIGIN');
-  if (!validAllowedOrigin_(allowedOrigin)) throw new Error('เธขเธฑเธเนเธกเนเนเธ”เนเธ•เธฑเนเธเธเนเธฒ ALLOWED_ORIGIN เธ—เธตเนเธ–เธนเธเธ•เนเธญเธเนเธ Script Properties');
-  if (String(requestOrigin || '').trim() !== allowedOrigin) throw new Error('เน€เธงเนเธเนเธเธ•เนเธ•เนเธเธ—เธฒเธเนเธกเนเนเธ”เนเธฃเธฑเธเธญเธเธธเธเธฒเธ• เธเธฃเธธเธ“เธฒเธ•เธฃเธงเธ ALLOWED_ORIGIN');
+  if (!validAllowedOrigin_(allowedOrigin)) throw new Error('ยังไม่ได้ตั้งค่า ALLOWED_ORIGIN ที่ถูกต้องใน Script Properties');
+  if (String(requestOrigin || '').trim() !== allowedOrigin) throw new Error('เว็บไซต์ต้นทางไม่ได้รับอนุญาต กรุณาตรวจ ALLOWED_ORIGIN');
   return allowedOrigin;
 }
 
@@ -679,9 +725,9 @@ function postMessageOutput_(obj) {
   let allowedOrigin = scriptProperty_('ALLOWED_ORIGIN');
   let response = Object.assign({source:'tcas-apps-script'}, obj);
   if (!validAllowedOrigin_(allowedOrigin)) {
-    // เธชเนเธเน€เธเธเธฒเธฐ configuration error เธ—เธตเนเนเธกเนเน€เธเธดเธ”เน€เธเธขเธเนเธญเธกเธนเธฅ เน€เธเธทเนเธญเนเธกเนเนเธซเน frontend เธฃเธญเธเธ timeout
+    // ส่งเฉพาะ configuration error ที่ไม่เปิดเผยข้อมูล เพื่อไม่ให้ frontend รอจน timeout
     allowedOrigin = '*';
-    response = {source:'tcas-apps-script', ok:false, token:String(obj.token || ''), message:'เธขเธฑเธเนเธกเนเนเธ”เนเธ•เธฑเนเธเธเนเธฒ ALLOWED_ORIGIN เธ—เธตเนเธ–เธนเธเธ•เนเธญเธเนเธ Script Properties'};
+    response = {source:'tcas-apps-script', ok:false, token:String(obj.token || ''), message:'ยังไม่ได้ตั้งค่า ALLOWED_ORIGIN ที่ถูกต้องใน Script Properties'};
   }
   const data = JSON.stringify(response).replace(/</g, '\\u003c');
   const html = '<!doctype html><meta charset="utf-8"><script>window.top.postMessage(' + data + ',' + JSON.stringify(allowedOrigin) + ');<\/script>';
@@ -689,7 +735,6 @@ function postMessageOutput_(obj) {
 }
 
 function safeError_(e) {
-  return e && e.message ? String(e.message) : 'เน€เธเธดเธ”เธเนเธญเธเธดเธ”เธเธฅเธฒเธ”เธเธญเธเธฃเธฐเธเธ';
+  return e && e.message ? String(e.message) : 'เกิดข้อผิดพลาดของระบบ';
 }
-
 
