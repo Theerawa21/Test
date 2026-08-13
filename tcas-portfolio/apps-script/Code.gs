@@ -1,4 +1,5 @@
 
+
 /**
  * TCAS Portfolio Backend
  * Student records + Teacher dashboard + Evidence images
@@ -18,6 +19,8 @@ const DEFAULT_SESSION_SECONDS = 21600; // 6 ชั่วโมง
 const DEFAULT_LOGIN_MAX_ATTEMPTS = 5;
 const DEFAULT_LOGIN_LOCK_SECONDS = 900; // 15 นาที
 const DEFAULT_ALLOWED_ORIGIN = 'https://theerawa21.github.io';
+const PORTFOLIO_APP_URL = 'https://theerawa21.github.io/Test/tcas-portfolio/';
+const SCHOOL_NAME = 'โรงเรียนเซนต์เทเรซา';
 
 const CONFIG = {
   activity: {sheet:'activities', headers:['citizen_id','title','first_name','last_name','program_title','exp_name','description','date','end_date','year','level','hours','fee']},
@@ -118,7 +121,7 @@ function lookupStudent_(id) {
   const found = sh.getRange(4, 3, last - 3, 1).createTextFinder(id).matchEntireCell(true).findNext();
   if (!found) return null;
 
-  const r = sh.getRange(found.getRow(), 2, 1, 12).getDisplayValues()[0];
+  const r = sh.getRange(found.getRow(), 2, 1, 13).getDisplayValues()[0];
   return {
     citizen_id:String(r[0] || ''),
     student_id:String(r[1] || ''),
@@ -126,7 +129,8 @@ function lookupStudent_(id) {
     title:String(r[3] || ''),
     first_name:String(r[4] || ''),
     last_name:String(r[5] || ''),
-    status:String(r[10] || '')
+    status:String(r[10] || ''),
+    email:String(r[12] || '').trim()
   };
 }
 
@@ -403,47 +407,12 @@ function teacherReviewResponse_(session, p) {
   const student = mustStudent_(p.student_id);
   const entryId = String(p.entry_id || '').trim();
   const feedback = String(p.feedback || '').trim();
-  const dueDate = String(p.due_date || '').trim();
+  const decision = normalizeTeacherDecision_(p.decision);
+  let dueDate = String(p.due_date || '').trim();
   if (!entryId) throw new Error('ไม่พบรายการที่ต้องการตรวจ');
-  if (!feedback) throw new Error('กรุณาระบุข้อเสนอแนะให้นักเรียน');
   if (feedback.length > 2000) throw new Error('ข้อเสนอแนะยาวเกิน 2,000 ตัวอักษร');
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(dueDate)) throw new Error('กรุณากำหนดวันส่งแก้ไข');
-  const today = Utilities.formatDate(new Date(), 'Asia/Bangkok', 'yyyy-MM-dd');
-  if (dueDate < today) throw new Error('วันส่งแก้ไขต้องเป็นวันนี้หรือวันถัดไป');
-
-  const owned = findOwnedEntry_(entryId, student.citizen_id);
-  if (!owned) throw new Error('ไม่พบรายการของนักเรียนคนนี้');
-  const sh = SpreadsheetApp.openById(DATA_SPREADSHEET_ID).getSheetByName(REVIEW_SHEET);
-  if (!sh) throw new Error('ไม่พบชีต reviews กรุณารัน setupSheets() ก่อน');
-
-  const lock = LockService.getScriptLock();
-  lock.waitLock(30000);
-  try {
-    const now = Utilities.formatDate(new Date(), 'Asia/Bangkok', 'dd/MM/yyyy HH:mm:ss');
-    let row = findReviewRow_(sh, entryId, student.citizen_id);
-    let reviewId = Utilities.getUuid();
-    let createdAt = now;
-    if (row) {
-      const current = sh.getRange(row, 1, 1, REVIEW_HEADERS.length).getDisplayValues()[0];
-      reviewId = current[0] || reviewId;
-      createdAt = current[8] || createdAt;
-    } else {
-      row = Math.max(sh.getLastRow() + 1, 2);
-    }
-    sh.getRange(row, 2, 1, 3).setNumberFormat('@');
-    sh.getRange(row, 7).setNumberFormat('@');
-    sh.getRange(row, 1, 1, REVIEW_HEADERS.length).setValues([[
-      reviewId, entryId, student.citizen_id, student.student_id, owned.type,
-      feedback, dueDate, 'needs_revision', createdAt, now, ''
-    ]]).setVerticalAlignment('top').setWrap(true);
-    return {success:true, review:publicReview_({review_id:reviewId, feedback:feedback, due_date:dueDate, status:'needs_revision', created_at:createdAt, updated_at:now, resubmitted_at:''})};
-  } finally {
-    lock.releaseLock();
-  }
-}
-
-function findOwnedEntry_(entryId, citizenId) {
-  const ss = SpreadsheetApp.openById(DATA_SPREADSHEET_ID);
+  if (decision === 'needs_revision') {
+    if (!feedback) throw new Error('กรุณาระบุข้อเสนอแนะให้นั…1599 tokens truncated…etApp.openById(DATA_SPREADSHEET_ID);
   for (const type of Object.keys(CONFIG)) {
     const sh = ss.getSheetByName(CONFIG[type].sheet);
     if (!sh) continue;
@@ -551,14 +520,15 @@ function getAllActiveStudents_() {
   const last = sh.getLastRow();
   if (last < 4) return [];
 
-  return sh.getRange(4, 2, last - 3, 12).getDisplayValues().map(r => ({
+  return sh.getRange(4, 2, last - 3, 13).getDisplayValues().map(r => ({
     citizen_id:String(r[0] || '').trim(),
     student_id:String(r[1] || '').trim(),
     class_room:String(r[2] || '').trim(),
     title:String(r[3] || '').trim(),
     first_name:String(r[4] || '').trim(),
     last_name:String(r[5] || '').trim(),
-    status:String(r[10] || '').trim()
+    status:String(r[10] || '').trim(),
+    email:String(r[12] || '').trim()
   })).filter(s => s.student_id && (!s.status || s.status === 'กำลังศึกษาอยู่'));
 }
 
@@ -904,4 +874,5 @@ function postMessageOutput_(obj) {
 function safeError_(e) {
   return e && e.message ? String(e.message) : 'เกิดข้อผิดพลาดของระบบ';
 }
+
 

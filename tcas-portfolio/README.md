@@ -1,3 +1,4 @@
+
 # TCAS Portfolio Entry — Saint Theresa School
 
 เว็บ GitHub Pages สำหรับให้นักเรียนบันทึกกิจกรรม รางวัล โครงงาน และหลักสูตร/Certificate ลง Google Sheets พร้อมแนบภาพหลักฐานใน Google Drive และมี Dashboard สำหรับครู
@@ -14,6 +15,8 @@
 - token อยู่ในหน่วยความจำของหน้าเว็บ ไม่บันทึกลง `localStorage`
 - teacher session มีวันหมดอายุแบบตายตัวและไม่ถูกต่ออายุทุกครั้งที่เปิด Dashboard/API
 - ทุก teacher API (`teacherDashboard`, `teacherStudent`, `teacherReview`, `teacherLogout`) รับ token ผ่าน POST และตรวจสิทธิ์ฝั่ง Backend
+- ครูให้ผลตรวจแต่ละรายการได้ 2 สถานะ: `ผ่าน` หรือ `ไม่ผ่าน — ให้แก้ไขตามข้อเสนอแนะ`
+- เมื่อมีอีเมลนักเรียน ระบบส่งผลตรวจผ่าน `MailApp` โดยไม่เปิดเผยอีเมลใน frontend
 
 ## Script Properties ที่ต้องตั้งค่า
 
@@ -47,6 +50,7 @@ Backend อ่านชีต `Student List` ตั้งแต่แถว 4 �
 - คอลัมน์ D: ชั้น/ห้อง
 - คอลัมน์ E–G: คำนำหน้า ชื่อ นามสกุล
 - คอลัมน์ L: สถานะ (`กำลังศึกษาอยู่`)
+- คอลัมน์ N: อีเมลนักเรียน (ไม่บังคับ แต่ต้องมีเพื่อส่งอีเมลแจ้งผลตรวจ)
 
 เลขประจำตัวประชาชนในคอลัมน์ B ควรเก็บเป็นข้อความและมีตัวเลขครบ 13 หลัก เพื่อให้เลขท้าย 4 หลักรวมเลขศูนย์นำหน้าได้ถูกต้อง
 
@@ -74,6 +78,9 @@ Backend อ่านชีต `Student List` ตั้งแต่แถว 4 �
 6. กรอกรหัสผิดครบจำนวนที่กำหนดเพื่อทดสอบ temporary lock ทั้งนักเรียนและครู
 7. ทดสอบครูเข้าสู่ระบบ เปิด Dashboard กรองห้อง และดูรายละเอียดนักเรียน
 8. ตรวจว่า `config.js` และ `index.html` ชี้ไป Web App URL เดียวกัน (ปัจจุบันคือ `https://script.google.com/macros/s/AKfycbyvEgrNa4g3puQ5AasQdpqCN295_Gcr1f1j3gcVrEkx_VH_q0r1pr7LTqYdQiHfYqR2/exec`)
+9. ใส่อีเมลทดสอบในคอลัมน์ N แล้วกด `ผ่าน` และ `ไม่ผ่าน` อย่างละหนึ่งครั้ง เพื่อตรวจข้อความและสิทธิ์ส่งเมลของ Apps Script
+
+> การเพิ่ม `MailApp` อาจทำให้เจ้าของ Apps Script ต้องอนุญาตสิทธิ์ส่งอีเมลอีกครั้งเมื่อ Deploy เวอร์ชันแรกที่มีฟีเจอร์นี้ ระบบจะไม่ส่งเมลหากคอลัมน์ N ว่างหรือรูปแบบอีเมลไม่ถูกต้อง และจะยังบันทึกผลตรวจไว้ตามปกติ
 
 หน้าเว็บ: `https://theerawa21.github.io/Test/tcas-portfolio/`
 
@@ -86,3 +93,4 @@ node --check tcas-portfolio/app.js
 node --check tcas-portfolio/teacher.js
 node --test tcas-portfolio/tests/backend-security.test.js
 ```
+

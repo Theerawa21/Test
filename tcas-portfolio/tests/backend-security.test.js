@@ -1,3 +1,4 @@
+
 const assert = require('node:assert/strict');
 const crypto = require('node:crypto');
 const fs = require('node:fs');
@@ -117,3 +118,20 @@ test('every teacher endpoint rejects a missing or invalid token', () => {
   assert.throws(() => backend.context.teacherReviewResponse_('invalid', {}), /สิทธิ์ครูหมดอายุ/);
   assert.throws(() => backend.context.teacherLogout_('invalid'), /สิทธิ์ครูหมดอายุ/);
 });
+
+test('teacher decisions accept only pass or revision-required states', () => {
+  const backend = createBackend();
+  assert.equal(backend.context.normalizeTeacherDecision_('approved'), 'approved');
+  assert.equal(backend.context.normalizeTeacherDecision_('needs_revision'), 'needs_revision');
+  assert.equal(backend.context.normalizeTeacherDecision_(''), 'needs_revision');
+  assert.throws(() => backend.context.normalizeTeacherDecision_('rejected'), /สถานะการตรวจไม่ถูกต้อง/);
+});
+
+test('email helpers validate addresses and escape notification content', () => {
+  const backend = createBackend();
+  assert.equal(backend.context.isValidEmail_('student@example.com'), true);
+  assert.equal(backend.context.isValidEmail_('missing-at.example.com'), false);
+  assert.equal(backend.context.formatThaiDateForEmail_('2026-08-31'), '31/08/2026');
+  assert.equal(backend.context.htmlEscape_('<script>"x"</script>'), '&lt;script&gt;&quot;x&quot;&lt;/script&gt;');
+});
+
