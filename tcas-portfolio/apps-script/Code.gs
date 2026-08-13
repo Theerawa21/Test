@@ -17,6 +17,7 @@ const DASHBOARD_CACHE_SECONDS = 90;
 const DEFAULT_SESSION_SECONDS = 21600; // 6 ชั่วโมง
 const DEFAULT_LOGIN_MAX_ATTEMPTS = 5;
 const DEFAULT_LOGIN_LOCK_SECONDS = 900; // 15 นาที
+const DEFAULT_ALLOWED_ORIGIN = 'https://theerawa21.github.io';
 
 const CONFIG = {
   activity: {sheet:'activities', headers:['citizen_id','title','first_name','last_name','program_title','exp_name','description','date','end_date','year','level','hours','fee']},
@@ -53,6 +54,7 @@ function doPost(e) {
     const action = String(p.action || '').trim();
     const payload = JSON.parse(p.payload || '{}');
     token = String(payload._token || '');
+    requireAllowedOrigin_(p.origin);
     let result;
 
     if (action === 'studentLogin') result = studentLogin_(payload.student_id, payload.citizen_last4);
@@ -85,8 +87,8 @@ function studentLogin_(id, citizenLast4) {
   const s = lookupStudent_(id);
   const actualLast4 = s ? normalizeDigits_(s.citizen_id).slice(-4) : '';
   if (!s || (s.status && s.status !== 'กำลังศึกษาอยู่') || !secureEqual_(actualLast4, citizenLast4)) {
-    recordLoginFailure_(rateKey);
-    throw new Error('รหัสนักเรียนหรือเลขท้ายบัตรประชาชนไม่ถูกต้อง');
+    const rate = recordLoginFailure_(rateKey);
+    throwLoginFailure_(rate, 'รหัสนักเรียนหรือเลขท้ายบัตรประชาชนไม่ถูกต้อง');
   }
 
   clearLoginFailures_(rateKey);
@@ -145,7 +147,6 @@ function mustStudent_(id) {
 
 function requireStudentSession_(token) {
   const data = requireSession_('student', token, 'เซสชันนักเรียนหมดอายุ กรุณาเข้าสู่ระบบใหม่');
-  refreshSession_('student', token, data, sessionSeconds_('STUDENT_SESSION_SECONDS'));
   return mustStudent_(data.student_id);
 }
 
@@ -484,15 +485,16 @@ function teacherLogin_(code) {
   requireLoginAllowed_(rateKey);
   const expected = getTeacherCode_();
   if (!value || !secureEqual_(value, expected)) {
-    recordLoginFailure_(rateKey);
-    throw new Error('รหัสสำหรับครูไม่ถูกต้อง');
+    const rate = recordLoginFailure_(rateKey);
+    throwLoginFailure_(rate, 'รหัสสำหรับครูไม่ถูกต้อง');
   }
 
   clearLoginFailures_(rateKey);
-  const session = createSessionToken_('teacher', {role:'teacher'}, sessionSeconds_('TEACHER_SESSION_SECONDS'));
+  const seconds = sessionSeconds_('TEACHER_SESSION_SECONDS');
+  const session = createSessionToken_('teacher', {role:'teacher'}, seconds);
 
   // Login should be quick. Dashboard is loaded by a separate request.
-  return {teacher_token:session};
+  return {teacher_token:session, expires_in:seconds, expires_at:Date.now() + seconds * 1000};
 }
 
 function teacherDashboardResponse_(session, forceRefresh) {
@@ -507,6 +509,7 @@ function teacherStudentResponse_(session, studentId) {
 }
 
 function teacherLogout_(session) {
+  requireTeacherSession_(session);
   removeSession_('teacher', session);
   return {success:true};
 }
@@ -519,7 +522,8 @@ function getTeacherCode_() {
 
 function requireTeacherSession_(session) {
   const data = requireSession_('teacher', session, 'สิทธิ์ครูหมดอายุ กรุณาเข้าสู่ระบบใหม่');
-  refreshSession_('teacher', session, data, sessionSeconds_('TEACHER_SESSION_SECONDS'));
+  if (data.role !== 'teacher') throw new Error('สิทธิ์ครูหมดอายุ กรุณาเข้าสู่ระบบใหม่');
+  return data;
 }
 
 function teacherDashboardDataCached_(forceRefresh) {
@@ -684,6 +688,52 @@ function setupSheets_() {
   reviews.getRange('G:G').setNumberFormat('@');
 }
 
+/**
+ * เตรียมค่าความปลอดภัยที่สร้างได้โดยไม่ต้องฝัง secret ลงใน source code
+ *
+ * วิธีใช้ครั้งแรก:
+ * 1) ตั้ง TEACHER_CODE ใน Project Settings > Script Properties ด้วยตนเอง
+ * 2) รัน setupConfig() จาก Apps Script editor
+ * 3) ตรวจ Execution log แล้ว Deploy เป็น New version
+ *
+ * ฟังก์ชันนี้จะสร้าง SESSION_SECRET แบบสุ่มเมื่อยังไม่มี และตั้ง origin ของ
+ * GitHub Pages ปัจจุบันเมื่อยังไม่มี แต่จะไม่สร้างรหัสครูเริ่มต้นที่คาดเดาได้
+ */
+function setupConfig() {
+  return setupConfig_();
+}
+
+function setupConfig_() {
+  const props = PropertiesService.getScriptProperties();
+  const updates = {};
+  const teacherCode = String(props.getProperty('TEACHER_CODE') || '').trim();
+  const currentSecret = String(props.getProperty('SESSION_SECRET') || '').trim();
+  const currentOrigin = String(props.getProperty('ALLOWED_ORIGIN') || '').trim();
+
+  if (!currentSecret) updates.SESSION_SECRET = Utilities.getUuid() + Utilities.getUuid();
+  if (!currentOrigin) updates.ALLOWED_ORIGIN = DEFAULT_ALLOWED_ORIGIN;
+  if (Object.keys(updates).length) props.setProperties(updates, false);
+
+  const errors = [];
+  if (!teacherCode) errors.push('ยังไม่ได้ตั้งค่า TEACHER_CODE ใน Script Properties');
+  if (teacherCode && teacherCode.length < 8) errors.push('TEACHER_CODE ควรมีอย่างน้อย 8 ตัวอักษร');
+  const secret = String(props.getProperty('SESSION_SECRET') || '').trim();
+  if (secret.length < 32) errors.push('SESSION_SECRET ต้องมีอย่างน้อย 32 ตัวอักษร');
+  const origin = String(props.getProperty('ALLOWED_ORIGIN') || '').trim();
+  if (!validAllowedOrigin_(origin)) errors.push('ALLOWED_ORIGIN ต้องเป็น HTTPS origin เช่น ' + DEFAULT_ALLOWED_ORIGIN);
+
+  const result = {
+    ok:errors.length === 0,
+    teacher_code_configured:!!teacherCode,
+    session_secret_configured:secret.length >= 32,
+    allowed_origin:origin,
+    message:errors.length ? errors.join(' | ') : 'ตั้งค่าความปลอดภัยพร้อมใช้งานแล้ว'
+  };
+  console.log(JSON.stringify(result));
+  if (errors.length) throw new Error(result.message);
+  return result;
+}
+
 /* ========================= HELPERS ========================= */
 function scriptProperty_(name) {
   return String(PropertiesService.getScriptProperties().getProperty(name) || '').trim();
@@ -734,7 +784,8 @@ function secureEqual_(left, right) {
 function createSessionToken_(kind, data, seconds) {
   const id = Utilities.getUuid().replace(/-/g, '') + Utilities.getUuid().replace(/-/g, '');
   const token = id + '.' + hmac_(kind + ':' + id);
-  refreshSession_(kind, token, data, seconds);
+  const sessionData = Object.assign({}, data, {expires_at:Date.now() + seconds * 1000});
+  storeSession_(kind, token, sessionData, seconds);
   return token;
 }
 
@@ -753,10 +804,20 @@ function requireSession_(kind, token, expiredMessage) {
   if (!validSessionToken_(kind, token)) throw new Error(expiredMessage);
   const cached = CacheService.getScriptCache().get(sessionCacheKey_(kind, token));
   if (!cached) throw new Error(expiredMessage);
-  try { return JSON.parse(cached); } catch (_) { throw new Error(expiredMessage); }
+  try {
+    const data = JSON.parse(cached);
+    if (!data.expires_at || Number(data.expires_at) <= Date.now()) {
+      removeSession_(kind, token);
+      throw new Error(expiredMessage);
+    }
+    return data;
+  } catch (err) {
+    if (err && err.message === expiredMessage) throw err;
+    throw new Error(expiredMessage);
+  }
 }
 
-function refreshSession_(kind, token, data, seconds) {
+function storeSession_(kind, token, data, seconds) {
   if (!validSessionToken_(kind, token)) return;
   CacheService.getScriptCache().put(sessionCacheKey_(kind, token), JSON.stringify(data), seconds);
 }
@@ -790,9 +851,16 @@ function recordLoginFailure_(rateKey) {
     state.attempts = Number(state.attempts || 0) + 1;
     if (state.attempts >= loginMaxAttempts_()) state.locked_until = Date.now() + loginLockSeconds_() * 1000;
     CacheService.getScriptCache().put(loginRateCacheKey_(rateKey), JSON.stringify(state), loginLockSeconds_());
+    return state;
   } finally {
     lock.releaseLock();
   }
+}
+
+function throwLoginFailure_(state, invalidMessage) {
+  const remaining = Number(state && state.locked_until || 0) - Date.now();
+  if (remaining > 0) throw new Error('มีการลองเข้าสู่ระบบหลายครั้งเกินไป ระบบล็อกชั่วคราว ' + Math.ceil(remaining / 60000) + ' นาที');
+  throw new Error(invalidMessage);
 }
 
 function clearLoginFailures_(rateKey) {
@@ -809,10 +877,26 @@ function jsonp_(obj, callback) {
   return ContentService.createTextOutput(cb ? cb + '(' + json + ');' : json).setMimeType(cb ? ContentService.MimeType.JAVASCRIPT : ContentService.MimeType.JSON);
 }
 
-function postMessageOutput_(obj) {
-  const data = JSON.stringify(Object.assign({source:'tcas-apps-script'}, obj)).replace(/</g, '\\u003c');
+function validAllowedOrigin_(origin) {
+  return /^https:\/\/[a-z0-9.-]+(?::\d+)?$/i.test(String(origin || '').trim());
+}
+
+function requireAllowedOrigin_(requestOrigin) {
   const allowedOrigin = scriptProperty_('ALLOWED_ORIGIN');
-  if (!/^https:\/\/[a-z0-9.-]+(?::\d+)?$/i.test(allowedOrigin)) throw new Error('ยังไม่ได้ตั้งค่า ALLOWED_ORIGIN ที่ถูกต้องใน Script Properties');
+  if (!validAllowedOrigin_(allowedOrigin)) throw new Error('ยังไม่ได้ตั้งค่า ALLOWED_ORIGIN ที่ถูกต้องใน Script Properties');
+  if (String(requestOrigin || '').trim() !== allowedOrigin) throw new Error('เว็บไซต์ต้นทางไม่ได้รับอนุญาต กรุณาตรวจ ALLOWED_ORIGIN');
+  return allowedOrigin;
+}
+
+function postMessageOutput_(obj) {
+  let allowedOrigin = scriptProperty_('ALLOWED_ORIGIN');
+  let response = Object.assign({source:'tcas-apps-script'}, obj);
+  if (!validAllowedOrigin_(allowedOrigin)) {
+    // ส่งเฉพาะ configuration error ที่ไม่เปิดเผยข้อมูล เพื่อไม่ให้ frontend รอจน timeout
+    allowedOrigin = '*';
+    response = {source:'tcas-apps-script', ok:false, token:String(obj.token || ''), message:'ยังไม่ได้ตั้งค่า ALLOWED_ORIGIN ที่ถูกต้องใน Script Properties'};
+  }
+  const data = JSON.stringify(response).replace(/</g, '\\u003c');
   const html = '<!doctype html><meta charset="utf-8"><script>window.top.postMessage(' + data + ',' + JSON.stringify(allowedOrigin) + ');<\/script>';
   return HtmlService.createHtmlOutput(html).setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
