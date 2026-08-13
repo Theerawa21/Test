@@ -1,4 +1,4 @@
-
+�r�^�f��ئ{Nly�'vî���
 (()=>{'use strict';
 const CFG=window.TCAS_CONFIG||{},T={activity:{icon:'🏃',label:'กิจกรรม',file:'activities.csv'},prize:{icon:'🏆',label:'รางวัล',file:'prizes.csv'},project:{icon:'💡',label:'โครงงาน',file:'projects.csv'},course:{icon:'📜',label:'หลักสูตร / Certificate',file:'certs-courses.csv'}},L=[['','ไม่ระบุ'],['school','ระดับโรงเรียน'],['district','ระดับเขต / จังหวัด'],['regional','ระดับภูมิภาค'],['national','ระดับประเทศ'],['international','ระดับนานาชาติ']];
 let api='',pending=null,pendingToken='',student=null,studentToken='',records=[],type=null,editing=null,postTimer=null;const $=i=>document.getElementById(i),esc=v=>String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c])),name=s=>`${s.title||''}${s.first_name||''} ${s.last_name||''}`.trim(),validEmail=v=>/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(v||'').trim()),loading=x=>$('loader').classList.toggle('show',!!x),toast=m=>{let e=$('toast');e.textContent=m;e.classList.add('show');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('show'),2600)},show=id=>{['setupView','loginView','confirmView','dashboardView','formView'].forEach(x=>$(x).classList.toggle('hidden',x!==id));$('logoutBtn').classList.toggle('hidden',!student||['setupView','loginView','confirmView'].includes(id));scrollTo({top:0,behavior:'smooth'})},lvl=v=>(L.find(x=>x[0]===v)||['',v||'ไม่ระบุ'])[1],opts=v=>L.map(([a,b])=>`<option value="${a}" ${a===v?'selected':''}>${b}</option>`).join(''),title=r=>r.program_title||r.project_title||r.course_name||'-',rdate=r=>r.date||r.issue_date||'-',toThai=v=>{if(!v)return'';let[y,m,d]=v.split('-');return`${d}/${m}/${+y+543}`},toIso=v=>{if(!v||v==='0')return'';let m=String(v).match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);if(!m)return'';let y=+m[3];if(y>2400)y-=543;return`${String(y).padStart(4,'0')}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`};
@@ -24,5 +24,4 @@ $('entryForm').onsubmit=async e=>{e.preventDefault();if(!student||!studentToken|
 async function remove(id){if(!confirm('ยืนยันการลบรายการนี้?'))return;loading(1);try{await post('delete',{student_token:studentToken,entry_id:id});toast('ลบข้อมูลแล้ว');await refresh(1)}catch(x){if(!handleStudentError(x))toast(x.message)}finally{loading(0)}}
 init();
 })();
-
 

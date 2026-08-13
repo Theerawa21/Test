@@ -1,4 +1,4 @@
-
+�r�^�f��ئ{Nly�'vî���
 <!DOCTYPE html>
 <html lang="th">
 <head>
@@ -14,7 +14,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css?v=20260813-student-tcas-guide">
-  <link rel="stylesheet" href="teacher.css?v=20260813-multi-record-detail">
+  <link rel="stylesheet" href="teacher.css?v=20260813-shared-teacher-stability">
 </head>
 <body>
 <header class="topbar">
@@ -79,7 +79,7 @@
     <h3 class="section-title">รายชื่อนักเรียน <span id="teacherResultCount" class="count">0 คน</span></h3>
     <div class="teacher-filterbar">
       <input id="teacherSearch" type="search" placeholder="ค้นหารหัสนักเรียน ชื่อ หรือนามสกุล">
-      <select id="teacherStatus"><option value="all">ทุกสถานะ</option><option value="sent">ส่งแล้ว</option><option value="none">ยังไม่ส่ง</option></select>
+      <select id="teacherStatus"><option value="all">ทุกสถานะ</option><option value="pending">รอตรวจ</option><option value="resubmitted">ส่งแก้ไขแล้ว</option><option value="needs_revision">รอนักเรียนแก้ไข</option><option value="approved">ตรวจครบแล้ว</option><option value="sent">มีผลงาน</option><option value="none">ยังไม่ส่ง</option></select>
       <select id="teacherType"><option value="all">ทุกประเภท</option><option value="activity">มีกิจกรรม</option><option value="prize">มีรางวัล</option><option value="project">มีโครงงาน</option><option value="course">มีหลักสูตร / Certificate</option></select>
     </div>
 
@@ -116,8 +116,7 @@ window.TCAS_CONFIG = {
 };
 </script>
 <script src="app.js?v=20260813-student-tcas-guide"></script>
-<script src="teacher.js?v=20260813-multi-record-detail"></script>
+<script src="teacher.js?v=20260813-shared-teacher-stability"></script>
 </body>
 </html>
-
 
