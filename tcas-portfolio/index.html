@@ -1,0 +1,126 @@
+Exit code: 0
+Wall time: 0.6 seconds
+Output:
+
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#12365a">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <meta name="description" content="เธฃเธฐเธเธเธเธฑเธเธ—เธถเธเธเธดเธเธเธฃเธฃเธก เธฃเธฒเธเธงเธฑเธฅ เนเธเธฃเธเธเธฒเธ เนเธฅเธฐเธซเธฅเธฑเธเธชเธนเธ•เธฃเธเธญเธเธเธฑเธเน€เธฃเธตเธขเธ">
+  <title>เธฃเธฐเธเธเธเธฑเธเธ—เธถเธเธเนเธญเธกเธนเธฅเธเธฅเธเธฒเธเธเธฑเธเน€เธฃเธตเธขเธ</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css?v=20260813-student-tcas-guide">
+  <link rel="stylesheet" href="teacher.css?v=20260813-shared-teacher-stability">
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <div class="brand-mark">ST</div>
+      <div><h1 id="brandTitle">เธฃเธฐเธเธเธเธฑเธเธ—เธถเธเธเนเธญเธกเธนเธฅเธเธฅเธเธฒเธเธเธฑเธเน€เธฃเธตเธขเธ</h1><p id="brandSchool">เนเธฃเธเน€เธฃเธตเธขเธเน€เธเธเธ•เนเน€เธ—เน€เธฃเธเธฒ</p></div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <button id="teacherEntryBtn" class="teacher-entry" type="button">๐‘ฉโ€๐ซ เธชเธณเธซเธฃเธฑเธเธเธฃเธน</button>
+      <button id="logoutBtn" class="ghost-top hidden" type="button">เธญเธญเธเธเธฒเธเธฃเธฐเธเธ</button>
+    </div>
+  </div>
+</header>
+
+<main class="shell">
+<section id="setupView" class="view center-view hidden"><div class="auth-card"><div class="hero-icon">โ๏ธ</div><h2>เธ•เธฑเนเธเธเนเธฒเธเธฒเธฃเน€เธเธทเนเธญเธกเธ•เนเธญเธเธฃเธฑเนเธเนเธฃเธ</h2><p class="lead">เน€เธงเนเธ GitHub Pages เธเธฃเนเธญเธกเนเธฅเนเธง เนเธ•เนเธ•เนเธญเธเน€เธเธทเนเธญเธกเธเธฑเธ Google Apps Script Web App เธเนเธญเธ เธเธถเธเธเธฐเธเนเธเธซเธฒเธเธฑเธเน€เธฃเธตเธขเธเนเธฅเธฐเธเธฑเธเธ—เธถเธเธฅเธ Google Sheet เนเธ”เน</p><div class="field"><label>Apps Script Web App URL</label><input id="backendInput" type="url" placeholder="https://script.google.com/macros/s/.../exec"></div><div id="setupError" class="error hidden"></div><button id="saveBackendBtn" class="btn btn-primary btn-block" type="button">เธเธฑเธเธ—เธถเธเธเธฒเธฃเน€เธเธทเนเธญเธกเธ•เนเธญ</button><div class="config-box hint">เธชเธณเธซเธฃเธฑเธเธเธนเนเธ”เธนเนเธฅเธฃเธฐเธเธเน€เธ—เนเธฒเธเธฑเนเธ เธซเธฅเธฑเธเธ•เธฑเนเธเธเนเธฒเนเธฅเนเธง URL เธเธฐเธ–เธนเธเน€เธเนเธเนเธเน€เธเธฃเธฒเธงเนเน€เธเธญเธฃเนเน€เธเธฃเธทเนเธญเธเธเธตเน</div></div></section>
+
+<section id="loginView" class="view center-view hidden"><div class="auth-card"><div class="hero-icon">๐“</div><h2>เน€เธเนเธฒเธชเธนเนเธฃเธฐเธเธเธเธฑเธเน€เธฃเธตเธขเธ</h2><p class="lead">เธเธฃเธญเธเธฃเธซเธฑเธชเธเธฃเธฐเธเธณเธ•เธฑเธงเธเธฑเธเน€เธฃเธตเธขเธเนเธฅเธฐเน€เธฅเธเธ—เนเธฒเธขเธเธฑเธ•เธฃเธเธฃเธฐเธเธฒเธเธ 4 เธซเธฅเธฑเธ เน€เธเธทเนเธญเธขเธทเธเธขเธฑเธเธ•เธฑเธงเธ•เธเธเนเธญเธเธเธฑเธเธ—เธถเธเธเธฅเธเธฒเธ</p><form id="loginForm"><div class="field"><label>เธฃเธซเธฑเธชเธเธฃเธฐเธเธณเธ•เธฑเธงเธเธฑเธเน€เธฃเธตเธขเธ <span class="required">*</span></label><input id="studentCode" class="student-code" inputmode="numeric" autocomplete="username" maxlength="10" required placeholder="เน€เธเนเธ 13999"><div class="hint">เธเธฃเธญเธเน€เธเธเธฒเธฐเธ•เธฑเธงเน€เธฅเธเธฃเธซเธฑเธชเธเธฃเธฐเธเธณเธ•เธฑเธงเธเธฑเธเน€เธฃเธตเธขเธ</div></div><div class="field"><label>เน€เธฅเธเธ—เนเธฒเธขเธเธฑเธ•เธฃเธเธฃเธฐเธเธฒเธเธ 4 เธซเธฅเธฑเธ <span class="required">*</span></label><input id="citizenLast4" class="student-code" type="password" inputmode="numeric" autocomplete="current-password" minlength="4" maxlength="4" pattern="[0-9]{4}" required placeholder="โ€ขโ€ขโ€ขโ€ข"><div class="hint">เนเธเนเน€เธเธเธฒเธฐ 4 เธซเธฅเธฑเธเธชเธธเธ”เธ—เนเธฒเธข เธฃเธฐเธเธเธเธฐเนเธกเนเนเธชเธ”เธเน€เธฅเธเธเธฑเธ•เธฃเธเธฃเธฐเธเธฒเธเธเน€เธ•เนเธก</div></div><div id="loginError" class="error hidden"></div><button class="btn btn-primary btn-block" type="submit">เธ•เธฃเธงเธเธชเธญเธเธเนเธญเธกเธนเธฅ</button></form></div></section>
+
+<section id="confirmView" class="view center-view hidden"><div class="identity-card"><div class="identity-head"><div class="avatar">๐‘ค</div><div><div id="confirmName" class="identity-name">-</div><div class="identity-sub">เธเธฃเธธเธ“เธฒเธ•เธฃเธงเธเธชเธญเธเธงเนเธฒเธเนเธญเธกเธนเธฅเธเธตเนเน€เธเนเธเธเธญเธเธเธธเธ“</div></div></div><div class="identity-grid"><div class="info-box"><div class="info-label">เธฃเธซเธฑเธชเธเธฃเธฐเธเธณเธ•เธฑเธงเธเธฑเธเน€เธฃเธตเธขเธ</div><div id="confirmStudentId" class="info-value">-</div></div><div class="info-box"><div class="info-label">เธเธฑเนเธ / เธซเนเธญเธ</div><div id="confirmClass" class="info-value">-</div></div></div><div class="field"><label for="confirmEmail">เธญเธตเน€เธกเธฅเธชเธณเธซเธฃเธฑเธเธฃเธฑเธเนเธเนเธเธเธฅ <span class="required">*</span></label><input id="confirmEmail" type="email" inputmode="email" autocomplete="email" maxlength="254" required placeholder="student@example.com"><div class="hint">เธเธฃเธญเธเธญเธตเน€เธกเธฅเธ—เธตเนเนเธเนเธเธฒเธเนเธ”เนเธเธฃเธดเธ เธฃเธฐเธเธเธเธฐเนเธเนเนเธเนเธเธเธฅเธ•เธฃเธงเธเธเธฒเธเธเธฃเธน</div><div id="confirmEmailError" class="error hidden"></div></div><div class="notice">เธฃเธฐเธเธเธขเธทเธเธขเธฑเธเธ•เธฑเธงเธ•เธเนเธฅเนเธงเนเธฅเธฐเธเธฐเนเธกเนเธชเนเธเน€เธฅเธเธเธฑเธ•เธฃเธเธฃเธฐเธเธฒเธเธ 13 เธซเธฅเธฑเธเธเธฅเธฑเธเธกเธฒเธขเธฑเธเน€เธเธฃเธฒเธงเนเน€เธเธญเธฃเน</div><div class="action-row"><button id="wrongBtn" class="btn btn-secondary" type="button">เนเธกเนเนเธเนเธเนเธญเธกเธนเธฅเธเธญเธเธเธฑเธ</button><button id="confirmBtn" class="btn btn-primary" type="button">เธเธฑเธเธ—เธถเธเธญเธตเน€เธกเธฅ ยท เธ”เธณเน€เธเธดเธเธเธฒเธฃเธ•เนเธญ</button></div></div></section>
+
+<section id="dashboardView" class="view hidden"><div class="dashboard-head"><div><h2>เธเธฑเธเธ—เธถเธเธเนเธญเธกเธนเธฅเธเธฅเธเธฒเธ</h2><p>เน€เธฅเธทเธญเธเธเธฃเธฐเน€เธ เธ—เธเนเธญเธกเธนเธฅเธ—เธตเนเธ•เธฃเธเธเธฑเธเธเธฅเธเธฒเธเธเธญเธเธเธธเธ“ เธฃเธฐเธเธเธเธฐเธเธฑเธ”เน€เธเนเธเธ•เธฒเธกเนเธเธฃเธเธชเธฃเนเธฒเธเนเธเธฅเน TCAS Verified เนเธ•เนเธฅเธฐเธเธฃเธฐเน€เธ เธ—เนเธ”เธขเธญเธฑเธ•เนเธเธกเธฑเธ•เธด</p></div><div class="student-pill"><strong id="dashName">-</strong><span id="dashMeta">-</span></div></div><details class="student-guide"><summary><span>๐“ เธเธนเนเธกเธทเธญเธเนเธญเธเธเธฑเธเธ—เธถเธเธเธฅเธเธฒเธเธ•เธฒเธก TCASFolio</span><small>เธเธ”เน€เธเธทเนเธญเธญเนเธฒเธเธเธณเนเธเธฐเธเธณ</small></summary><div class="student-guide-body"><div class="guide-block"><h3>เน€เธฅเธทเธญเธเธเธฃเธฐเน€เธ เธ—เนเธซเนเธ•เธฃเธเธเธฑเธเธเธฅเธเธฒเธ</h3><ul><li><strong>เธเธดเธเธเธฃเธฃเธก</strong> โ€” เธเธฒเธเธ—เธตเนเธเธฑเธเน€เธฃเธตเธขเธเน€เธเนเธฒเธฃเนเธงเธกเนเธฅเธฐเธฃเธฐเธเธธเธเธ—เธเธฒเธ—เธเธญเธเธ•เธเน€เธญเธ</li><li><strong>เธฃเธฒเธเธงเธฑเธฅ</strong> โ€” เนเธเนเน€เธกเธทเนเธญเนเธ”เนเธฃเธฑเธเธฃเธฒเธเธงเธฑเธฅเธซเธฃเธทเธญเน€เธเธตเธขเธฃเธ•เธดเธเธฑเธ•เธฃเธเธฒเธเธเธงเธฒเธกเธชเธฒเธกเธฒเธฃเธ–</li><li><strong>เนเธเธฃเธเธเธฒเธ</strong> โ€” เธเธฒเธเธ—เธตเนเธเธฑเธเน€เธฃเธตเธขเธเธฃเธดเน€เธฃเธดเนเธกเนเธฅเธฐเธฅเธเธกเธทเธญเธ—เธณเน€เธญเธ เนเธ”เธขเนเธฃเธเน€เธฃเธตเธขเธเธชเธเธฑเธเธชเธเธธเธเธซเธฃเธทเธญเนเธซเนเธเธณเธเธฃเธถเธเธฉเธฒ</li><li><strong>เธซเธฅเธฑเธเธชเธนเธ•เธฃ / Certificate</strong> โ€” เธเธฒเธฃเน€เธฃเธตเธขเธเธซเธฃเธทเธญเธญเธเธฃเธกเธ—เธตเนเธกเธตเธเธฒเธฃเธเธฃเธฐเน€เธกเธดเธเธเนเธฒเธโ€“เนเธกเนเธเนเธฒเธ เธเธฐเนเธเธ เธซเธฃเธทเธญเน€เธเธฃเธ”</li></ul></div><div class="guide-block"><h3>เธฃเธฐเธ”เธฑเธเธเธฅเธเธฒเธ</h3><div class="level-guide"><span><b>School (L1)</b> เนเธฃเธเน€เธฃเธตเธขเธ/เธชเธ–เธฒเธเธฑเธ</span><span><b>Regional (L2)</b> เธเธฑเธเธซเธงเธฑเธ”/เน€เธเธ•/เธ เธฒเธ</span><span><b>National (L3)</b> เธฃเธฐเธ”เธฑเธเธเธฒเธ•เธด</span><span><b>International (L4)</b> เธฃเธฐเธ”เธฑเธเธเธฒเธเธฒเธเธฒเธ•เธด</span></div></div><div class="guide-tip"><strong>เธเนเธญเธเธเธฑเธเธ—เธถเธ:</strong> เนเธเนเธเนเธญเธกเธนเธฅเธเธฃเธดเธ เธฃเธฐเธเธธเธงเธฑเธเน€เธฃเธดเนเธกโ€“เธชเธดเนเธเธชเธธเธ” เธเธตเธเธฒเธฃเธจเธถเธเธฉเธฒ เธเธฑเนเธงเนเธกเธเนเธฅเธฐเธเนเธฒเนเธเนเธเนเธฒเธขเนเธซเนเธเธฃเธเน€เธ—เนเธฒเธ—เธตเนเธกเธต เธซเธฒเธเน€เธเนเธเธเธดเธเธเธฃเธฃเธกเธงเธฑเธเน€เธ”เธตเธขเธงเนเธซเนเนเธเนเธงเธฑเธเธ—เธตเนเน€เธ”เธตเธขเธงเธเธฑเธเธ—เธฑเนเธเธงเธฑเธเน€เธฃเธดเนเธกเนเธฅเธฐเธงเธฑเธเธชเธดเนเธเธชเธธเธ”</div></div></details><h3 class="section-title">เน€เธฅเธทเธญเธเธเธฃเธฐเน€เธ เธ—เธเนเธญเธกเธนเธฅ</h3><div class="type-grid"><button class="type-card" data-type="activity"><div class="type-icon">๐</div><h3>เธเธดเธเธเธฃเธฃเธก</h3><p>เธเธฒเธเธ—เธตเนเธเธฑเธเน€เธฃเธตเธขเธเน€เธเนเธฒเธฃเนเธงเธก เนเธ”เธขเนเธฃเธเน€เธฃเธตเธขเธเธซเธฃเธทเธญเธเธฅเธธเนเธกเธเธดเธเธเธฃเธฃเธกเนเธเนเธฃเธเน€เธฃเธตเธขเธเน€เธเนเธเธเธนเนเธเธฑเธ” เธฃเธฐเธเธธเธเธทเนเธญ เธฃเธฒเธขเธฅเธฐเน€เธญเธตเธขเธ” เนเธฅเธฐเธเธ—เธเธฒเธ—เธเธญเธเธ•เธเน€เธญเธ</p><span id="countActivity" class="count">0 เธฃเธฒเธขเธเธฒเธฃ</span></button><button class="type-card" data-type="prize"><div class="type-icon">๐</div><h3>เธฃเธฒเธเธงเธฑเธฅ</h3><p>เธฃเธฒเธเธงเธฑเธฅเธซเธฃเธทเธญเน€เธเธตเธขเธฃเธ•เธดเธเธฑเธ•เธฃเธเธฒเธเธเธงเธฒเธกเธชเธฒเธกเธฒเธฃเธ–เธ—เธตเนเนเธฃเธเน€เธฃเธตเธขเธเธกเธญเธเนเธซเน เธซเธฃเธทเธญเนเธฃเธเน€เธฃเธตเธขเธเธกเธตเธชเนเธงเธเธชเนเธเน€เธเนเธฒเธเธฃเธฐเธเธงเธ”เนเธเธเธฒเธกเนเธฃเธเน€เธฃเธตเธขเธ</p><span id="countPrize" class="count">0 เธฃเธฒเธขเธเธฒเธฃ</span></button><button class="type-card" data-type="project"><div class="type-icon">๐’ก</div><h3>เนเธเธฃเธเธเธฒเธ</h3><p>เธเธฒเธเธ—เธตเนเธเธฑเธเน€เธฃเธตเธขเธเธฃเธดเน€เธฃเธดเนเธกเนเธฅเธฐเธฅเธเธกเธทเธญเธ—เธณเน€เธญเธ เธญเธฒเธเน€เธเนเธเธชเนเธงเธเธซเธเธถเนเธเธเธญเธเธงเธดเธเธฒ เนเธ”เธขเนเธฃเธเน€เธฃเธตเธขเธเธชเธเธฑเธเธชเธเธธเธเธเธฃเธฐเธเธงเธเธเธฒเธฃเนเธฅเธฐเนเธซเนเธเธณเธเธฃเธถเธเธฉเธฒ</p><span id="countProject" class="count">0 เธฃเธฒเธขเธเธฒเธฃ</span></button><button class="type-card" data-type="course"><div class="type-icon">๐“</div><h3>เธซเธฅเธฑเธเธชเธนเธ•เธฃ / Certificate</h3><p>เธเธฒเธฃเน€เธฃเธตเธขเธเธซเธฃเธทเธญเธญเธเธฃเธกเน€เธเธดเนเธกเธ—เธฑเธเธฉเธฐเธ—เธตเนเธกเธตเธเธฒเธฃเธเธฃเธฐเน€เธกเธดเธเธเธฅ เน€เธเนเธ MOOC เธซเธฃเธทเธญเธเธฒเธฃเน€เธฃเธตเธขเธเธฅเนเธงเธเธซเธเนเธฒ เนเธกเนเธฃเธงเธกเธเธฒเธฃเธญเธเธฃเธกเธ—เธฑเนเธงเนเธเธเนเธงเธเธชเธฑเนเธ</p><span id="countCourse" class="count">0 เธฃเธฒเธขเธเธฒเธฃ</span></button></div><h3 class="section-title">เธเนเธญเธกเธนเธฅเธ—เธตเนเธเธฑเธเธเธฑเธเธ—เธถเธ</h3><div class="panel"><div class="toolbar"><h3>เธฃเธฒเธขเธเธฒเธฃเธ—เธฑเนเธเธซเธกเธ”</h3><button id="refreshBtn" class="btn btn-secondary" type="button">โป เธญเธฑเธเน€เธ”เธ•</button></div><div id="recordsList" class="records"></div></div><div class="footer-note">เธเนเธญเธกเธนเธฅเธเธฐเธ–เธนเธเธเธฑเธเธ—เธถเธเธฅเธ Google Sheet เธเธญเธเนเธฃเธเน€เธฃเธตเธขเธ เนเธฅเธฐเธเธฑเธ”เน€เธเนเธเนเธขเธเน€เธเนเธ activities / prizes / projects / certs-courses</div></section>
+
+<section id="formView" class="view hidden"><div class="form-shell"><div class="form-top"><button id="backBtn" class="back" type="button">โ</button><div class="form-title"><h2 id="formHeading">เธเธฑเธเธ—เธถเธเธเนเธญเธกเธนเธฅ</h2><p id="formSubheading">-</p></div></div><div class="student-strip"><strong id="formStudentName">-</strong><span id="formStudentMeta">-</span></div><form id="entryForm" class="form-card"><div id="dynamicFields"></div><div class="form-actions"><button id="cancelBtn" class="btn btn-secondary" type="button">เธขเธเน€เธฅเธดเธ</button><button class="btn btn-primary" type="submit">๐’พ เธเธฑเธเธ—เธถเธเธเนเธญเธกเธนเธฅ</button></div></form></div></section>
+
+<!-- TEACHER LOGIN -->
+<section id="teacherLoginView" class="view center-view hidden">
+  <div class="auth-card teacher-login-card">
+    <div class="hero-icon">๐‘ฉโ€๐ซ</div>
+    <h2>เธฃเธฐเธเธเธ•เธฃเธงเธเธชเธญเธเธชเธณเธซเธฃเธฑเธเธเธฃเธน</h2>
+    <p class="lead">เธชเธณเธซเธฃเธฑเธเธเธฃเธนเธ•เธฃเธงเธเธชเธญเธเธเธฒเธฃเธชเนเธเธเนเธญเธกเธนเธฅเธเธญเธเธเธฑเธเน€เธฃเธตเธขเธเนเธขเธเน€เธเนเธเธฃเธฒเธขเธซเนเธญเธ เนเธฅเธฐเธ”เธนเธฃเธฒเธขเธฅเธฐเน€เธญเธตเธขเธ”เธเธฅเธเธฒเธเธฃเธฒเธขเธเธธเธเธเธฅ</p>
+    <form id="teacherLoginForm">
+      <div class="field"><label>เธฃเธซเธฑเธชเธชเธณเธซเธฃเธฑเธเธเธฃเธน <span class="required">*</span></label><input id="teacherCode" class="student-code" type="password" autocomplete="off" maxlength="32" required placeholder="โ€ขโ€ขโ€ขโ€ขโ€ขโ€ขโ€ขโ€ขโ€ข"><div class="hint">เธเธฃเธญเธเธฃเธซเธฑเธชเธชเธณเธซเธฃเธฑเธเธเธฃเธนเธ—เธตเนเธเธนเนเธ”เธนเนเธฅเธฃเธฐเธเธเธเธณเธซเธเธ”</div></div>
+      <div id="teacherLoginError" class="error hidden"></div>
+      <button class="btn btn-primary btn-block" type="submit">เน€เธเนเธฒเธชเธนเนเธซเธเนเธฒเธ•เธฃเธงเธเธชเธญเธ</button>
+      <button id="teacherBackStudentBtn" class="btn btn-secondary btn-block" type="button">โ เธเธฅเธฑเธเธซเธเนเธฒเธชเธณเธซเธฃเธฑเธเธเธฑเธเน€เธฃเธตเธขเธ</button>
+    </form>
+  </div>
+</section>
+
+<!-- TEACHER DASHBOARD -->
+<section id="teacherDashboardView" class="view hidden">
+  <div class="teacher-dashboard">
+    <div class="teacher-head">
+      <div><h2>Dashboard เธ•เธฃเธงเธเธชเธญเธเธเธฒเธฃเธชเนเธเธเนเธญเธกเธนเธฅ</h2><p>เน€เธฅเธทเธญเธเธซเนเธญเธเน€เธเธทเนเธญเธ”เธนเธงเนเธฒเธเธฑเธเน€เธฃเธตเธขเธเธชเนเธเนเธฅเนเธงเธเธตเนเธเธ เธขเธฑเธเนเธกเนเธชเนเธเธเธตเนเธเธ เนเธฅเธฐเธ•เธฃเธงเธเธชเธญเธเธฃเธฒเธขเธฅเธฐเน€เธญเธตเธขเธ”เธฃเธฒเธขเธเธธเธเธเธฅ</p></div>
+      <div class="teacher-actions"><button id="teacherRefreshBtn" class="btn btn-secondary" type="button">โป เธญเธฑเธเน€เธ”เธ•เธเนเธญเธกเธนเธฅ</button><button id="teacherLogoutBtn" class="btn btn-secondary" type="button">เธญเธญเธเธเธฒเธเนเธซเธกเธ”เธเธฃเธน</button></div>
+    </div>
+
+    <div class="teacher-stats">
+      <div class="teacher-stat"><div id="teacherTotal" class="value">0</div><div class="label">เธเธฑเธเน€เธฃเธตเธขเธเธ—เธฑเนเธเธซเธกเธ” ยท <span id="teacherScopeLabel">เธ—เธธเธเธซเนเธญเธ</span></div></div>
+      <div class="teacher-stat"><div id="teacherSent" class="value">0</div><div class="label">เธชเนเธเธเนเธญเธกเธนเธฅเนเธฅเนเธง</div></div>
+      <div class="teacher-stat"><div id="teacherNotSent" class="value">0</div><div class="label">เธขเธฑเธเนเธกเนเธชเนเธเธเนเธญเธกเธนเธฅ</div></div>
+      <div class="teacher-stat"><div id="teacherRecords" class="value">0</div><div class="label">เธฃเธฒเธขเธเธฒเธฃเธเธฅเธเธฒเธเธ—เธฑเนเธเธซเธกเธ”</div></div>
+    </div>
+
+    <div class="panel">
+      <div class="toolbar"><h3>เน€เธฅเธทเธญเธเธซเนเธญเธเน€เธฃเธตเธขเธ</h3><span class="hint">เธเธ”เธ—เธตเนเธซเนเธญเธเน€เธเธทเนเธญเธเธฃเธญเธเธฃเธฒเธขเธเธทเนเธญ</span></div>
+      <div id="teacherRoomGrid" class="room-grid"></div>
+    </div>
+
+    <h3 class="section-title">เธฃเธฒเธขเธเธทเนเธญเธเธฑเธเน€เธฃเธตเธขเธ <span id="teacherResultCount" class="count">0 เธเธ</span></h3>
+    <div class="teacher-filterbar">
+      <input id="teacherSearch" type="search" placeholder="เธเนเธเธซเธฒเธฃเธซเธฑเธชเธเธฑเธเน€เธฃเธตเธขเธ เธเธทเนเธญ เธซเธฃเธทเธญเธเธฒเธกเธชเธเธธเธฅ">
+      <select id="teacherStatus"><option value="all">เธ—เธธเธเธชเธ–เธฒเธเธฐ</option><option value="pending">เธฃเธญเธ•เธฃเธงเธ</option><option value="resubmitted">เธชเนเธเนเธเนเนเธเนเธฅเนเธง</option><option value="needs_revision">เธฃเธญเธเธฑเธเน€เธฃเธตเธขเธเนเธเนเนเธ</option><option value="approved">เธ•เธฃเธงเธเธเธฃเธเนเธฅเนเธง</option><option value="sent">เธกเธตเธเธฅเธเธฒเธ</option><option value="none">เธขเธฑเธเนเธกเนเธชเนเธ</option></select>
+      <select id="teacherType"><option value="all">เธ—เธธเธเธเธฃเธฐเน€เธ เธ—</option><option value="activity">เธกเธตเธเธดเธเธเธฃเธฃเธก</option><option value="prize">เธกเธตเธฃเธฒเธเธงเธฑเธฅ</option><option value="project">เธกเธตเนเธเธฃเธเธเธฒเธ</option><option value="course">เธกเธตเธซเธฅเธฑเธเธชเธนเธ•เธฃ / Certificate</option></select>
+    </div>
+
+    <div class="teacher-table-wrap">
+      <table class="teacher-table">
+        <thead><tr><th>เธเธฑเธเน€เธฃเธตเธขเธ</th><th>เธชเธ–เธฒเธเธฐ</th><th>เธเธณเธเธงเธ</th><th>เนเธขเธเธ•เธฒเธกเธเธฃเธฐเน€เธ เธ—</th><th>เธฃเธฒเธขเธฅเธฐเน€เธญเธตเธขเธ”</th></tr></thead>
+        <tbody id="teacherStudentRows"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- TEACHER STUDENT DETAIL -->
+<section id="teacherDetailView" class="view hidden">
+  <div class="teacher-detail-shell">
+    <div class="teacher-detail-head"><button id="teacherDetailBackBtn" class="back" type="button">โ</button><div><h2>เธฃเธฒเธขเธฅเธฐเน€เธญเธตเธขเธ”เธเนเธญเธกเธนเธฅเธเธฑเธเน€เธฃเธตเธขเธ</h2><div class="hint">เธ•เธฃเธงเธเธชเธญเธเธเนเธญเธกเธนเธฅเธ—เธตเนเธเธฑเธเน€เธฃเธตเธขเธเธเธฑเธเธ—เธถเธเนเธงเนเธ—เธฑเนเธ 4 เธเธฃเธฐเน€เธ เธ—</div></div></div>
+    <div class="teacher-detail-student"><strong id="teacherDetailName">-</strong><div id="teacherDetailMeta">-</div></div>
+    <div id="teacherRecordList" class="teacher-record-list"></div>
+  </div>
+</section>
+</main>
+
+<div id="loader" class="loader"><div class="spinner"></div></div>
+<div id="toast" class="toast"></div>
+<iframe id="postFrame" name="postFrame" class="hidden" title="data-submit"></iframe>
+<form id="postForm" class="hidden" method="post" target="postFrame"><input name="action"><input name="payload"><input name="origin"></form>
+
+<script>
+window.TCAS_CONFIG = {
+  apiUrl: 'https://script.google.com/macros/s/AKfycbyvEgrNa4g3puQ5AasQdpqCN295_Gcr1f1j3gcVrEkx_VH_q0r1pr7LTqYdQiHfYqR2/exec',
+  appName: 'เธฃเธฐเธเธเธเธฑเธเธ—เธถเธเธเนเธญเธกเธนเธฅเธเธฅเธเธฒเธเธเธฑเธเน€เธฃเธตเธขเธ',
+  schoolName: 'เนเธฃเธเน€เธฃเธตเธขเธเน€เธเธเธ•เนเน€เธ—เน€เธฃเธเธฒ',
+  academicYear: '2569'
+};
+</script>
+<script src="app.js?v=20260813-student-tcas-guide"></script>
+<script src="teacher.js?v=20260813-shared-teacher-stability"></script>
+</body>
+</html>
+
+
