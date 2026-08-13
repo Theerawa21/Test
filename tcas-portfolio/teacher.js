@@ -67,3 +67,4 @@ $('teacherDetailBackBtn')?.addEventListener('click',()=>showTeacher('teacherDash
 if(!document.querySelector('script[data-evidence]')){const s=document.createElement('script');s.src='attachments.js?v=20260810-2008';s.dataset.evidence='1';document.body.appendChild(s)}
 })();
 
+

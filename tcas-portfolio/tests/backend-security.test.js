@@ -211,3 +211,4 @@ test('frontend accepts Apps Script top-frame responses by token and trusted payl
   assert.match(appSource, /e\.data\.token!==token/);
   assert.match(teacherSource, /e\.data\.token!==token/);
 });
+
